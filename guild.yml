@@ -1,0 +1,21 @@
+- model: 1D
+  description: Meta-train and test CNP, NP, ANP, MAML, meta-GPR.
+  sourcecode:
+    - '*.py'
+    - guild.yml
+  operations:
+    train-np:
+      description: Meta-train and test CNP, NP, ANP, [MAML,] meta-GPR.
+      main: run_1D_experiments
+      flags-import: all
+      output-scalars: no
+      flags:
+        meta_learner: 'neural_process'
+        dataset: 'sin_20'
+        seed: 22
+        num_iter_fit: 4000
+        task_batch_size: 4
+        lr_decay: 0.97
+        lr_params: 1e-3
+        r_dim: 32
+        weight_decay: 1e-3
