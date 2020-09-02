@@ -21,7 +21,8 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
     def __init__(self, meta_train_data, context_split_ratio=0.5, lr_params=1e-3, r_dim=50, z_dim=50, h_dim=50, num_iter_fit=10000,
                  weight_decay=1e-2, task_batch_size=5, normalize_data=True, optimizer='Adam', lr_decay=1.0, random_seed=None):
         """
-        Neural Process regression model (https://arxiv.org/abs/1807.01622) that supports meta-learning.
+        Neural Process regression model (https://arxiv.org/abs/1807.01622) that
+        supports meta-learning.
 
         Args:
             meta_train_data: list of tuples of ndarrays[(train_x_1, train_t_1), ..., (train_x_n, train_t_n)]
@@ -299,8 +300,11 @@ if __name__ == "__main__":
     test_context_x, test_context_y, test_target_x, test_target_y = meta_test_data[0]
     x_plot = np.linspace(-5, 5, num=150)
     x_plot = x_plot[:, np.newaxis]
-    pred_mean, pred_std = meta_np.predict(context_x=test_context_x, context_y=test_context_y, test_x=x_plot)
-    ucb, lcb = meta_np.confidence_intervals(test_context_x, test_context_y, x_plot, confidence=0.9)
+    pred_mean, pred_std = meta_np.predict(context_x=test_context_x,
+                                          context_y=test_context_y,
+                                          test_x=x_plot)
+    ucb, lcb = meta_np.confidence_intervals(test_context_x, test_context_y,
+                                            x_plot, confidence=0.9)
 
     plt.scatter(test_context_x, test_context_y)
     plt.scatter(test_target_x, test_target_y)
