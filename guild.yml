@@ -5,17 +5,32 @@
     - guild.yml
   operations:
     train-np:
-      description: Meta-train and test CNP, NP, ANP, [MAML,] meta-GPR.
+      description: Meta-train and test NP
       main: run_1D_experiments
-      flags-import: all
       output-scalars: no
       flags:
         meta_learner: 'neural_process'
         dataset: 'sin_20'
-        seed: 22
-        num_iter_fit: 4000
+        random_seed: 25
+        num_iter_fit: 1100
         task_batch_size: 4
         lr_decay: 0.97
         lr_params: 1e-3
         r_dim: 32
         weight_decay: 1e-3
+
+    train-meta-gpr:
+      main: run_1D_experiments
+      flags:
+        meta_learner: 'gpr_meta_mll'
+        dataset: 'sin_20'
+        random_seed: 25
+        covar_module: NN
+        mean_module: NN
+        num_iter_fit: 1000
+        weight_decay: 0.0
+        task_batch_size: 4
+        lr_decay: 0.97
+        lr_params: 1e-3
+        mean_nn_layers: 32,32,32,32
+        kernel_nn_layers: 32,32,32,32

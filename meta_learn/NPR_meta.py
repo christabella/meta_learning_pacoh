@@ -136,6 +136,7 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
             self.lr_scheduler.step()
 
             cum_loss += loss
+            self.writer.add_scalar("Train/loss", loss, itr)
 
             # print training stats stats
             if itr == 1 or itr % log_period == 0:
@@ -143,15 +144,16 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
                 avg_loss = cum_loss / (log_period if itr > 1 else 1.0)
                 cum_loss = 0.0
                 t = time.time()
-
-                message = 'Iter %d/%d - Loss: %.6f - Time %.2f sec' % (itr, self.num_iter_fit, avg_loss.item(), duration)
-
+                message = 'Iter %d/%d - Loss: %.6f - Time %.2f sec' % (itr, self.num_iter_fit, loss, duration)
                 # if validation data is provided  -> compute the valid log-likelihood
                 if valid_tuples is not None:
                     self.model.eval()
                     valid_ll, valid_rmse, calibr_err = self.eval_datasets(valid_tuples, flatten_y=False)
                     self.model.train()
                     message += ' - Valid-LL: %.3f - Valid-RMSE: %.3f - Calib-Err %.3f' % (valid_ll, valid_rmse, calibr_err)
+                    self.writer.add_scalar("Eval/log_likelihood", valid_ll, itr)
+                    self.writer.add_scalar("Eval/rmse", valid_rmse, itr)
+                    self.writer.add_scalar("Eval/calibr_error", calibr_err, itr)
 
                 if verbose:
                     self.logger.info(message)

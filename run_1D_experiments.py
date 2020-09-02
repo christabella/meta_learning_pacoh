@@ -18,16 +18,18 @@ DATASETS = [
     for dataset in ['cauchy', 'sin']
 ]
 
-DATA_SEED = 28
 MODEL_SEEDS = [22, 23, 24, 25, 26]
 
 LAYER_SIZES = [32, 32, 32, 32]
 
 
 def fit_eval_meta_algo(param_dict):
-    meta_learner = param_dict.pop("meta_learner")
+    if param_dict['mean_nn_layers']:
+        param_dict['mean_nn_layers'] = [int(n) for n in param_dict['mean_nn_layers'].split(',')]
+    if param_dict['kernel_nn_layers']:
+        param_dict['kernel_nn_layers'] = [int(n) for n in param_dict['kernel_nn_layers'].split(',')]
+    meta_learner = param_dict["meta_learner"]
     dataset = param_dict.pop("dataset")
-    seed = param_dict.pop("seed")
 
     ALGO_MAP = {
         'gpr_meta_mll': GPRegressionMetaLearned,
@@ -38,21 +40,14 @@ def fit_eval_meta_algo(param_dict):
     }
     meta_learner_cls = ALGO_MAP[meta_learner]
 
-    # 1) prepare reults dict
-    results_dict = {
-        'learner': meta_learner,
-        'dataset': dataset,
-        'seed': seed,
-    }
-    results_dict.update(**param_dict)
-
     # 1) Generate Data
     from experiments.data_sim import provide_data
-    data_train, _, data_test = provide_data(dataset, DATA_SEED)
+    data_train, _, data_test = provide_data(dataset, 25)
 
     # 2) Fit model (meta-learning/meta-training)
-    model = meta_learner_cls(data_train, **param_dict, random_seed=seed)
-    model.meta_fit(data_test, log_period=5000)
+    model = meta_learner_cls(data_train, **param_dict)
+    EVAL_EVERY = 100
+    model.meta_fit(data_test, log_period=EVAL_EVERY)
 
     # 3) evaluate model (meta-testing)
     if meta_learner == 'neural_process':
@@ -110,13 +105,18 @@ if __name__ == '__main__':
         description='Run meta mll hyper-parameter search.')
     parser.add_argument('--meta_learner', type=str, default='neural_process')
     parser.add_argument('--dataset', type=str)
-    parser.add_argument('--seed', type=int)
+    parser.add_argument('--random_seed', type=int, help='Seed for the model.')
     parser.add_argument('--num_iter_fit', type=int)
     parser.add_argument('--task_batch_size', type=int)
     parser.add_argument('--r_dim', type=int)
     parser.add_argument('--lr_decay', type=float)
     parser.add_argument('--lr_params', type=float)
     parser.add_argument('--weight_decay', type=float)
+    # Just for Meta-GPR
+    parser.add_argument('--mean_module', type=str)
+    parser.add_argument('--covar_module', type=str)
+    parser.add_argument('--mean_nn_layers', type=str)
+    parser.add_argument('--kernel_nn_layers', type=str)
 
     args = parser.parse_args()
 
