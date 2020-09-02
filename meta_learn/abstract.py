@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from torch.utils.tensorboard import SummaryWriter
 from meta_learn.util import get_logger, _handle_input_dimensionality
 from config import device
 
@@ -138,6 +139,7 @@ class RegressionModelMetaLearned:
         self.logger = get_logger()
         self.input_dim = None
         self.output_dim = None
+        self.writer = SummaryWriter('summaries')
 
         if random_seed is not None:
             torch.manual_seed(random_seed)
@@ -208,13 +210,21 @@ class RegressionModelMetaLearned:
 
         assert (all([len(valid_tuple) == 4 for valid_tuple in test_tuples]))
 
-        ll_list, rmse_list, calibr_err_list = list(
-            zip(*[
-                self.eval(*test_data_tuple, flatten_y=flatten_y, **kwargs)
-                for test_data_tuple in test_tuples
-            ]))
+        ll_list, rmse_list, calibr_err_list = [], [], []
+        for i, test_data_tuple in enumerate(test_tuples):
+            metrics = self.eval(*test_data_tuple, flatten_y=flatten_y, **kwargs)
+            [x.append(y) for x, y in zip([ll_list, rmse_list, calibr_err_list], metrics)]
+            avg_log_likelihood, rmse, calibr_error = metrics
+            self.writer.add_scalars("log_likelihood", {"eval": avg_log_likelihood}, i)
+            self.writer.add_scalars("rmse", {"eval": rmse}, i)
+            self.writer.add_scalars("calibr_error", {"eval": calibr_error}, i)
+        # Average over all test tasks/datasets
+        mean_avg_log_likelihood, mean_rmse, mean_calibr_error = np.mean(ll_list), np.mean(rmse_list), np.mean(calibr_err_list)
+        self.writer.add_scalars("log_likelihood", {"eval": mean_avg_log_likelihood}, i+1)
+        self.writer.add_scalars("rmse", {"eval": mean_rmse}, i+1)
+        self.writer.add_scalars("calibr_error", {"eval": mean_calibr_error}, i+1)
 
-        return np.mean(ll_list), np.mean(rmse_list), np.mean(calibr_err_list)
+        return mean_avg_log_likelihood, mean_rmse, mean_calibr_error
 
     def confidence_intervals(self,
                              context_x,
