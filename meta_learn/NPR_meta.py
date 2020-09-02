@@ -19,7 +19,7 @@ from config import device
 class NPRegressionMetaLearned(RegressionModelMetaLearned):
 
     def __init__(self, meta_train_data, context_split_ratio=0.5, lr_params=1e-3, r_dim=50, z_dim=50, h_dim=50, num_iter_fit=10000,
-                 weight_decay=1e-2, task_batch_size=5, normalize_data=True, optimizer='Adam', lr_decay=1.0, random_seed=None):
+                 weight_decay=1e-2, task_batch_size=5, normalize_data=True, optimizer='Adam', lr_decay=1.0, random_seed=None, **kwargs):
         """
         Neural Process regression model (https://arxiv.org/abs/1807.01622) that
         supports meta-learning.

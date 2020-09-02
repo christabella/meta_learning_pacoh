@@ -26,7 +26,8 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
                  normalize_data=True,
                  optimizer='Adam',
                  lr_decay=1.0,
-                 random_seed=None):
+                 random_seed=None,
+                 **kwargs):
         """
         Meta-Learning GP priors (i.e. mean and kernel function) via PACOH-MAP
 
