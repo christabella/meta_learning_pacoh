@@ -148,7 +148,7 @@ class MNISTRegressionDataset(MetaDataset):
         )
 
         self.train_images = self.train_images / 255.0
-        self.test_images = self.train_images / 255.0
+        self.test_images = self.test_images / 255.0
 
     def generate_meta_train_data(self, n_tasks, n_samples):
 
