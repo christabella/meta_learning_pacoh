@@ -11,8 +11,5 @@ future
 tensorboard
 requests
 tensorflow
-hyperopt
-ray[tune]
-tables
 h5py
 pyyaml
