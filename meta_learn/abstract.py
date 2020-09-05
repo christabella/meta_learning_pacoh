@@ -327,7 +327,7 @@ def _calib_error(pred_dist_vectorized, test_t_tensor):
         cdf_vals = cdf_vals.flatten()
 
     num_points = test_t_tensor.shape[0]
-    conf_levels = torch.linspace(0.05, 0.95, 20)
+    conf_levels = torch.linspace(0.05, 0.95, num_points)
     emp_freq_per_conf_level = torch.sum(cdf_vals[:, None] <= conf_levels,
                                         dim=0).float() / num_points
 

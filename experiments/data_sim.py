@@ -25,11 +25,13 @@ class MetaDataset:
             self.random_state = random_state
 
     def generate_meta_train_data(self, n_tasks: int, n_samples: int) -> list:
+        """Return (X_C, Y_C) tuples"""
         raise NotImplementedError
 
     def generate_meta_test_data(
         self, n_tasks: int, n_samples_context: int, n_samples_test: int
     ) -> list:
+        """Return (X_C, Y_C, X_T, Y_T) tuples"""
         raise NotImplementedError
 
 
@@ -191,12 +193,14 @@ class MNISTRegressionDataset(MetaDataset):
         return meta_test_tuples
 
     def _image_to_context_transform(self, image, num_context_points):
+        """From a HxW square image, produce context and test indices and values."""
         assert image.ndim == 2 and image.shape[0] == image.shape[1]
         image_size = image.shape[0]
         assert num_context_points <= image_size ** 2
 
         xx, yy = np.meshgrid(np.arange(image_size), np.arange(image_size))
         indices = np.array(list(zip(xx.flatten(), yy.flatten())))
+        # Pick num_context_points pixels randomly.
         context_indices = indices[
             self.random_state.choice(
                 image_size ** 2, size=num_context_points, replace=False
@@ -629,7 +633,8 @@ def provide_data(dataset, seed=28, n_train_tasks=None, n_samples=None):
     """"Generate data.
     Args:
       dataset: one of ['sin-nonstat', 'sin', 'gp_funcs', 'cauchy', 'mnist', 'physionet', 'pendulum', 'swissfel']
-
+      n_train_tasks: how many training tasks/images to have
+      n_samples:
     Returns data_train, data_test_valid, data_test_valid
     """
     import numpy as np

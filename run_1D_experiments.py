@@ -54,11 +54,7 @@ def fit_eval_meta_algo(param_dict):
         eval_result = model.eval_datasets(data_test, flatten_y=False)
     else:
         eval_result = model.eval_datasets(data_test)
-    # TODO submit metrics to guild
     ll, rmse, calib_err = eval_result
-    results_dict.update(ll=ll, rmse=rmse, calib_err=calib_err)
-
-    return results_dict
 
 def main(args):
     param_dict = vars(args)

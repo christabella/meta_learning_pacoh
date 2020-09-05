@@ -153,6 +153,7 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
                 self.lr_scheduler.step()
 
                 cum_loss += loss
+                self.writer.add_scalar("Train/loss", loss, itr)
 
                 # print training stats stats
                 if itr == 1 or itr % log_period == 0:
@@ -172,6 +173,9 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
                         self.likelihood.train()
                         message += ' - Valid-LL: %.3f - Valid-RMSE: %.3f - Calib-Err %.3f' % (
                             valid_ll, valid_rmse, calibr_err)
+                        self.writer.add_scalar("Eval/log_likelihood", valid_ll, itr)
+                        self.writer.add_scalar("Eval/rmse", valid_rmse, itr)
+                        self.writer.add_scalar("Eval/calibr_error", calibr_err, itr)
 
                     if verbose:
                         self.logger.info(message)
@@ -236,7 +240,7 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
         else:
             pred_mean = pred_dist_transformed.mean
             pred_std = pred_dist_transformed.stddev
-            return pred_mean.cpu().numpy(), pred_std.cpu().numpy()
+            return pred_mean.detach().numpy(), pred_std.detach().numpy()
 
     def state_dict(self):
         state_dict = {
