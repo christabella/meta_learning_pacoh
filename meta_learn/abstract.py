@@ -140,6 +140,8 @@ class RegressionModelMetaLearned:
         self.input_dim = None
         self.output_dim = None
         self.writer = SummaryWriter('summaries')
+        if not os.path.isdir('images'):
+            os.mkdir('images')
 
         if random_seed is not None:
             torch.manual_seed(random_seed)
