@@ -231,7 +231,7 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
         plt.plot(x_plot, pred_mean.reshape(-1), color='orchid', label='Predicted mean')
         plt.fill_between(x_plot, lcb[0][:,0], ucb[0][:,0], alpha=0.3, label='90% confidence interval', color='orchid')
         plt.scatter(x_context, y_context, label='Context set $\{ \mathbf{X}_C, \mathbf{X}_C \}$', color='blue')
-        plt.scatter(x_test, y_test, label='Target set $\{ \mathbf{X}_T, \mathbf{X}_T \}$', color='black', alpha=0.5)
+        plt.scatter(x_test, y_test, label='Target set $\{ \mathbf{X}_T, \mathbf{X}_T \}$', color='black', alpha=0.25)
         plt.legend()
         title = "1D regression on a meta-test task/dataset"
         plt.title(title)
