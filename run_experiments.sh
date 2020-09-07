@@ -7,3 +7,6 @@ guild run 1D:train-meta-gpr -y dataset=mnist mean_module=constant
 guild run 1D:train-meta-gpr -y dataset=mnist mean_module=NN
 guild run 1D:train-meta-gpr -y dataset=mnist mean_module=NN covar_module=SE
 guild run 1D:train-meta-gpr -y dataset=mnist mean_module=NN covar_module=NN..................
+
+
+guild run 1D:train-all-np --optimizer gp --max-trials 50 --tag gp --minimize Eval/log_likelihood
