@@ -6,8 +6,6 @@ import numpy as np
 import seaborn as sns
 from matplotlib import pyplot as plt
 import io
-import PIL
-from torchvision.transforms import ToTensor
 from torch.distributions.kl import kl_divergence
 
 sys.path.append("")
@@ -208,31 +206,6 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
             pred_std = pred_dist_transformed.stddev
             return pred_mean.cpu().numpy(), pred_std.cpu().numpy()
 
-    def plot_1d_regression(self, valid_tuple, itr):
-        """Save figure as a PGF and send to tensorboard."""
-        x_context, y_context, x_test, y_test = valid_tuple
-        x_plot = np.linspace(-5, 5, num=150)
-        pred_mean, pred_std = self.predict(x_context, y_context, x_plot)
-        ucb, lcb = self.confidence_intervals(x_context, y_context, x_plot, confidence=0.9)
-
-        plt.plot(x_plot, pred_mean.reshape(-1), color='orchid', label='Predicted mean')
-        plt.fill_between(x_plot, lcb[0][:,0], ucb[0][:,0], alpha=0.3, label='90% confidence interval', color='orchid')
-        plt.scatter(x_context, y_context, label='Context set $\{ \mathbf{X}_C, \mathbf{X}_C \}$', color='blue')
-        plt.scatter(x_test, y_test, label='Target set $\{ \mathbf{X}_T, \mathbf{X}_T \}$', color='black', alpha=0.25)
-        plt.legend()
-        title = "1D regression on a meta-test task/dataset"
-        plt.title(title)
-        # Save plot as a PGF file.
-        plt.savefig(f'images/1d_regression_plot_itr={itr}.pgf')
-        # Write plot to a bytes buffer.
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        plt.close()
-        # Read into a PIL image and convert to tensor.
-        buf.seek(0)
-        image = PIL.Image.open(buf)
-        image = ToTensor()(image)  #.unsqueeze(0)
-        return image
 
     def state_dict(self):
         state_dict = {

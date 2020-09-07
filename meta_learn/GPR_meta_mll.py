@@ -176,6 +176,9 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
                         self.writer.add_scalar("Eval/log_likelihood", valid_ll, itr)
                         self.writer.add_scalar("Eval/rmse", valid_rmse, itr)
                         self.writer.add_scalar("Eval/calibr_error", calibr_err, itr)
+                        idx = self.rds_numpy.randint(0, len(valid_tuples))
+                        image = self.plot_1d_regression(valid_tuples[idx], itr)
+                        self.writer.add_image('val_regression_plot', image, itr)
 
                     if verbose:
                         self.logger.info(message)
