@@ -40,14 +40,14 @@
         meta_learner: ['neural_process','conditional_neural_process', 'attentive_conditional_neural_process', 'attentive_neural_process']
         dataset: 'sin'
         random_seed: [25, 26, 27]
-        num_iter_fit: 10000
+        num_iter_fit: 1000
         task_batch_size: [4, 16]
         lr_decay: [0.97, 0.98, 0.99, 1]
         lr_params: [5e-3, 1e-3, 5e-4, 1e-4, 1e-5]
         h_dim: 128
         weight_decay: [1e-4, 1e-3, 1e-2]
-        n_train_tasks: [100, 1000, 10000, 100000]
-        n_train_samples: [50, 100, 250, 500, 1000]
+        n_train_tasks: [100, 1000]
+        n_train_samples: [25, 50, 100, 250]
         n_test_context_samples: 5
 
     train-meta-gpr:
