@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import numpy as np
-from module.basic_module import DeterministicEncoder, DeterministicDecoder
+from third_party.np_family.module.basic_module import DeterministicDecoder, DeterministicEncoder
 
 class ConditionalNeuralProcess(nn.Module):
     """Conditional Neural Process module.
@@ -35,7 +35,7 @@ class ConditionalNeuralProcess(nn.Module):
                                        latent_dim=self.latent_dim,
                                        output_dim=self.output_dim)
 
-    def forward(self, x_context, y_context, x_target):
+    def forward(self, x_context, y_context, x_target, y_target=None):
         """Forward pass through CNP.
 
         Args:
@@ -50,7 +50,7 @@ class ConditionalNeuralProcess(nn.Module):
             tensor: Result of forward pass.
         """
         n = x_context.shape[1]
-        r = self.encoder(x_context, y_context)
+        r = self.encoder(x_context, y_context, x_target)
         # If latent representation is global, repeat once for each input.
         if r.shape[1] == 1:
             r = r.repeat(1, x_target.shape[1], 1)

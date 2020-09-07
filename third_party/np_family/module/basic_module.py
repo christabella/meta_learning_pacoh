@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
 import numpy as np
-from module.utils import init_sequential_weights
+from third_party.np_family.module import utils
 from torch.distributions import Normal
 
 class DotProdAttention(nn.Module):
@@ -235,7 +235,7 @@ class LatentEncoder(nn.Module):
             nn.ReLU(),
             nn.Linear(self.latent_dim, 2 * self.latent_dim)
         )
-        self.pre_pooling_fn = init_sequential_weights(pre_pooling_fn)
+        self.pre_pooling_fn = utils.init_sequential_weights(pre_pooling_fn)
         self.pooling_fn = MeanPooling(pooling_dim=1)
         self.sigma_fn = torch.sigmoid
 
@@ -296,7 +296,7 @@ class DeterministicEncoder(nn.Module):
             nn.ReLU(),
             nn.Linear(self.latent_dim, self.latent_dim)
         )
-        self.pre_pooling_fn = init_sequential_weights(pre_pooling_fn)
+        self.pre_pooling_fn = utils.init_sequential_weights(pre_pooling_fn)
         if self.use_attention:
             self.pooling_fn = CrossAttention(attent_input_dim)
         else:
@@ -351,7 +351,7 @@ class DeterministicDecoder(nn.Module):
             nn.Linear(self.latent_dim, 2 * self.output_dim),
         )
         # use xavier initialization for faster convergence
-        self.post_pooling_fn = init_sequential_weights(post_pooling_fn)
+        self.post_pooling_fn = utils.init_sequential_weights(post_pooling_fn)
         self.sigma_fn = nn.functional.softplus
 
     def forward(self, x, r, n=None):

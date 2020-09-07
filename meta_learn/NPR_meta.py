@@ -7,11 +7,16 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 import io
 from torch.distributions.kl import kl_divergence
+from torch.distributions import Normal
 
 sys.path.append("")
 
+from third_party.np_family.module.NP import NeuralProcess
+from third_party.np_family.module.CNP import ConditionalNeuralProcess
+from third_party.np_family.module.utils import compute_loss, comput_kl_loss
+
 from third_party.neural_processes.utils import context_target_split
-from third_party.neural_processes.neural_process import NeuralProcess
+# from third_party.neural_processes.neural_process import NeuralProcess
 
 from meta_learn.models import AffineTransformedDistribution
 from meta_learn.util import _handle_input_dimensionality, DummyLRScheduler
@@ -21,8 +26,8 @@ from config import device
 
 class NPRegressionMetaLearned(RegressionModelMetaLearned):
 
-    def __init__(self, meta_train_data, context_split_ratio=0.5, lr_params=1e-3, r_dim=50, z_dim=50, h_dim=50, num_iter_fit=10000,
-                 weight_decay=1e-2, task_batch_size=5, normalize_data=True, optimizer='Adam', lr_decay=1.0, random_seed=None, **kwargs):
+    def __init__(self, meta_train_data, context_split_ratio=0.5, lr_params=1e-3, r_dim=50, z_dim=50, h_dim=128, num_iter_fit=10000,
+                 weight_decay=1e-2, task_batch_size=5, normalize_data=True, optimizer='Adam', lr_decay=1.0, random_seed=None, use_attention=True, is_conditional=True, **kwargs):
         """
         Neural Process regression model (https://arxiv.org/abs/1807.01622) that
         supports meta-learning.
@@ -42,7 +47,6 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
             random_seed: (int) seed for pytorch
         """
         super().__init__(normalize_data, random_seed)
-
         assert optimizer in ['Adam', 'SGD']
 
         self.lr_params, self.r_dim, self.z_dim, self.h_dim = lr_params, r_dim, z_dim, h_dim
@@ -52,15 +56,21 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
         # Check that data all has the same size
         self._check_meta_data_shapes(meta_train_data)
         self._compute_normalization_stats(meta_train_data)
-        
+
         self.input_dim = meta_train_data[0][0].shape[-1]
         self.output_dim = meta_train_data[0][1].shape[-1]
-        
-        self.model = NeuralProcess(x_dim=self.input_dim,
-                                  y_dim=self.output_dim,
-                                  r_dim=self.r_dim,
-                                  z_dim=self.z_dim,
-                                  h_dim=self.h_dim)
+        self.is_conditional = is_conditional
+        if self.is_conditional:
+            self.model = ConditionalNeuralProcess(input_dim=self.input_dim,
+                                                  latent_dim=self.h_dim,
+                                                  output_dim=self.output_dim,
+                                                  use_attention=use_attention)
+        else:
+            self.model = NeuralProcess(input_dim=self.input_dim,
+                                       latent_dim=self.h_dim,
+                                       # self.r_dim, or z_dim
+                                       output_dim=self.output_dim,
+                                       use_attention=use_attention)
 
         # Setup components that are shared across tasks
         self.shared_parameters = self.model.parameters()
@@ -113,14 +123,19 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
                 batch_x = torch.unsqueeze(task["train_x"], dim=0)
                 batch_y = torch.unsqueeze(task["train_y"], dim=0)
                 n_samples = batch_x.shape[0]
-                num_context = self.rds_numpy.randint(3, 47+1)
+                num_context = self.rds_numpy.randint(10, 40+1)
                 num_extra_target = n_samples - num_context
                 x_context, y_context, x_target, y_target = \
                     context_target_split(batch_x, batch_y,
                                          num_context, num_extra_target)
-                p_y_pred, q_target, q_context = \
-                    self.model(x_context, y_context, x_target, y_target)
-                loss += self._loss(p_y_pred, y_target, q_target, q_context)
+                if self.is_conditional:
+                    mean, var = self.model(x_context, y_context, x_target)
+                    loss += compute_loss(mean, var, y_target)
+                else:
+                    (mean, var), prior, poster = self.model(x_context, y_context, x_target, y_target)
+                    nll_loss = compute_loss(mean, var, y_target)
+                    kl_loss = comput_kl_loss(prior, poster)
+                    loss += nll_loss + kl_loss
 
             loss.backward()
             self.optimizer.step()
@@ -146,7 +161,9 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
                     self.writer.add_scalar("Eval/rmse", valid_rmse, itr)
                     self.writer.add_scalar("Eval/calibr_error", calibr_err, itr)
                     # Add image
-                    image = self.plot_1d_regression(valid_tuples[0], itr)
+                    # idx = 0
+                    idx = self.rds_numpy.randint(0, len(valid_tuples))
+                    image = self.plot_1d_regression(valid_tuples[idx], itr)
                     self.writer.add_image('val_regression_plot', image, itr)
 
                 if verbose:
@@ -192,9 +209,13 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
 
         with torch.no_grad():
             # compute posterior given the context data
-            pred_dist = self.model(context_x, context_y, test_x)
+            if self.is_conditional:
+                mean, var = self.model(context_x, context_y, test_x)
+            else:
+                (mean, var), prior, poster = self.model(context_x, context_y, test_x)
+            pred_dist = Normal(mean, var)
             pred_dist_transformed = AffineTransformedDistribution(pred_dist, normalization_mean=self.y_mean,
-                                                                  normalization_std=self.y_std)            
+                                                                      normalization_std=self.y_std)
 
         if train_old:
             self.model.train()

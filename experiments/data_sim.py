@@ -669,6 +669,7 @@ def provide_data(dataset, seed=28, n_train_tasks=None, n_samples=None):
         if n_samples is None:
             n_train_samples = n_context_samples = 5
         else:
+            # Since we use ALL the context samples for training...
             n_train_samples = n_context_samples = n_samples
 
         if n_train_tasks is None:

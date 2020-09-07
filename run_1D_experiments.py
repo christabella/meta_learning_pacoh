@@ -16,23 +16,26 @@ from meta_learn.GPR_meta_mll import GPRegressionMetaLearned
 from meta_learn.NPR_meta import NPRegressionMetaLearned
 from meta_learn.MAML import MAMLRegression
 
+from experiments.data_sim import SinusoidNonstationaryDataset, MNISTRegressionDataset, \
+    PhysionetDataset, GPFunctionsDataset, SinusoidDataset, CauchyDataset, provide_data
+
 DATASETS = [
     '%s_%i' % (dataset, n_tasks) for n_tasks in [5, 10, 20, 40, 80, 160, 320]
     for dataset in ['cauchy', 'sin']
 ]
-
+DATA_SEED = 25
 MODEL_SEEDS = [22, 23, 24, 25, 26]
 
 LAYER_SIZES = [32, 32, 32, 32]
 
 
-def fit_eval_meta_algo(param_dict):
+def fit_eval_meta_algo(args):
+    param_dict = vars(args)
     if param_dict['mean_nn_layers']:
         param_dict['mean_nn_layers'] = [int(n) for n in param_dict['mean_nn_layers'].split(',')]
     if param_dict['kernel_nn_layers']:
         param_dict['kernel_nn_layers'] = [int(n) for n in param_dict['kernel_nn_layers'].split(',')]
     meta_learner = param_dict["meta_learner"]
-    dataset = param_dict.pop("dataset")
 
     ALGO_MAP = {
         'gpr_meta_mll': GPRegressionMetaLearned,
@@ -40,17 +43,51 @@ def fit_eval_meta_algo(param_dict):
         'gpr_meta_svgd': GPRegressionMetaLearnedSVGD,
         'maml': MAMLRegression,
         'neural_process': NPRegressionMetaLearned,
+        'conditional_neural_process': NPRegressionMetaLearned,
+        'attentive_conditional_neural_process': NPRegressionMetaLearned,
+        'neural_process': NPRegressionMetaLearned,
+        'attentive_neural_process': NPRegressionMetaLearned,
     }
     meta_learner_cls = ALGO_MAP[meta_learner]
-
+    param_dict['use_attention'], param_dict['is_conditional'] = False, False
+    if "attentive" in meta_learner:
+        param_dict['use_attention'] = True
+    if "conditional" in meta_learner:
+        param_dict['is_conditional'] = True
+    dataset = None
     # 1) Generate Data
-    from experiments.data_sim import provide_data
-    data_train, _, data_test = provide_data(dataset, 25)
+    if args.dataset == 'sin-nonstat':
+        dataset = SinusoidNonstationaryDataset(random_state=np.random.RandomState(DATA_SEED + 1))
+    elif args.dataset == 'sin':
+        dataset = SinusoidDataset(random_state=np.random.RandomState(DATA_SEED + 1))
+    elif args.dataset == 'cauchy':
+        dataset = CauchyDataset(random_state=np.random.RandomState(DATA_SEED + 1))
+    elif args.dataset == 'mnist':
+        dataset = MNISTRegressionDataset(random_state=np.random.RandomState(DATA_SEED + 1))
+    elif args.dataset == 'physionet':
+        dataset = PhysionetDataset(random_state=np.random.RandomState(DATA_SEED + 1))
+    elif args.dataset == 'gp-funcs':
+        dataset = GPFunctionsDataset(random_state=np.random.RandomState(DATA_SEED + 1))
+    # If NP, split meta-test into context-target, else put everything into "context"self.
+    # Actually even if NP, put *everything* into the meta_train, since within
+    # NPR_meta we further do the splitting based on context_split_ratio.
+    data_train = dataset.generate_meta_train_data(
+        n_tasks=args.n_train_tasks, n_samples=args.n_train_samples
+    )
+
+    data_test = dataset.generate_meta_test_data(
+        n_tasks=args.n_test_tasks,
+        n_samples_context=args.n_test_context_samples,
+        # The "extra target"
+        n_samples_test=args.n_test_samples - args.n_test_context_samples,
+    )
 
     # 2) Fit model (meta-learning/meta-training)
     model = meta_learner_cls(data_train, **param_dict)
-    EVAL_EVERY = 100
-    model.meta_fit(data_test, log_period=EVAL_EVERY)
+    EVAL_EVERY = args.num_iter_fit / 10  # Tensorboard can only show 10 images anyway...
+    model.meta_fit(data_test,  # Pass in data_test as validation since we don't
+                   # really do anything with it e.g. early stopping...
+                   log_period=EVAL_EVERY)
 
     # 3) evaluate model (meta-testing)
     if meta_learner == 'neural_process':
@@ -60,8 +97,6 @@ def fit_eval_meta_algo(param_dict):
     ll, rmse, calib_err = eval_result
 
 def main(args):
-    param_dict = vars(args)
-    fit_eval_meta_algo(param_dict)
     param_configs = [
         {
             'meta_learner': 'gpr_meta_mll',
@@ -107,7 +142,13 @@ if __name__ == '__main__':
     parser.add_argument('--random_seed', type=int, help='Seed for the model.')
     parser.add_argument('--num_iter_fit', type=int)
     parser.add_argument('--task_batch_size', type=int)
+    parser.add_argument('--n_train_tasks', type=int)
+    parser.add_argument('--n_train_samples', type=int, default=50)
+    parser.add_argument('--n_test_tasks', type=int, default=200)
+    parser.add_argument('--n_test_samples', type=int, default=50)
+    parser.add_argument('--n_test_context_samples', type=int, default=5)
     parser.add_argument('--r_dim', type=int)
+    parser.add_argument('--h_dim', type=int)
     parser.add_argument('--lr_decay', type=float)
     parser.add_argument('--lr_params', type=float)
     parser.add_argument('--weight_decay', type=float)
@@ -122,4 +163,4 @@ if __name__ == '__main__':
     print('Running', os.path.abspath(__file__), '\n')
     print('\n')
 
-    main(args)
+    fit_eval_meta_algo(args)

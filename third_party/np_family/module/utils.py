@@ -57,49 +57,6 @@ def to_tensor(var):
     var = torch.tensor(var,dtype=torch.float32).unsqueeze(0)
     return var if len(var.shape) > 2 else var.unsqueeze(-1)
 
-def save_plot_data(data_test, kernel):
-    if kernel in ['MNIST', 'SVHN', 'celebA']: # image datesets
-        img, _ = next(iter(data_test))
-        context_mask, target_mask = generate_mask(img)
-        x_context, y_context, x_target, y_target = img_mask_to_np_input(img, context_mask, target_mask, \
-                                                                        include_context=False)
-        query = (x_context, y_context), x_target
-        data = NPRegressionDescription(query=query, y_target=y_target, \
-                                num_context_points=x_context.shape[1], \
-                                num_total_points=x_target.shape[1] + x_context.shape[1])
-    else: # GP datasets
-        data = data_test.generate_curves(include_context=False)
-        (x_context, y_context), x_target = data.query
-        y_target = data.y_target
-    context = to_numpy(torch.cat([x_context[0], y_context[0]], dim=-1))
-    # print ("context data shape:", context.shape)
-    df = pd.DataFrame(context)
-    df.to_csv('saved_fig/csv/plot_context_'+kernel+'.csv', index=False)
-    target = to_numpy(torch.cat([x_target[0],y_target[0]], dim=-1))
-    # print("target data shape:", target.shape)
-    df = pd.DataFrame(target)
-    df.to_csv('saved_fig/csv/plot_target_' + kernel + '.csv', index=False)
-    return data
-
-def load_plot_data(kernel):
-    if kernel in ['MNIST', 'SVHN', 'celebA']:  # image datesets
-        context = pd.read_csv('saved_fig/csv/plot_context_' + kernel + '.csv').values
-        target = pd.read_csv('saved_fig/csv/plot_target_' + kernel + '.csv').values
-        x_context = context[:, :2]
-        y_context = context[:, 2:]
-        x_target = target[:, :2]
-        y_target = target[:, 2:]
-        query = (to_tensor(x_context), to_tensor(y_context)), to_tensor(x_target)
-        y_target = to_tensor(y_target)
-    else: # GP datasets
-        context = pd.read_csv('saved_fig/csv/plot_context_'+kernel+'.csv')
-        target = pd.read_csv('saved_fig/csv/plot_target_' + kernel + '.csv')
-        query = (to_tensor(context['x_context']), to_tensor(context['y_context'])), to_tensor(target['x_target'])
-        y_target = to_tensor(target['y_target'])
-    return NPRegressionDescription(query=query, y_target=y_target, \
-                                   num_context_points=context.shape[0], \
-                                   num_total_points=target.shape[0]+context.shape[0])
-
 def img_mask_to_np_input(img, context_mask, target_mask, include_context = False, normalize=True):
     """
     Given an image and two masks, return x and y tensors expected by Neural
