@@ -3,7 +3,6 @@ from torch.distributions import Normal
 from torch.distributions.kl import kl_divergence
 import torch
 import pandas as pd
-from data.GP_data_sampler import NPRegressionDescription
 
 def init_sequential_weights(model, bias=0.0):
     """Initialize the weights of a nn.Sequential module with Glorot
