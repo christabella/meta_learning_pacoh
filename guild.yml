@@ -13,11 +13,14 @@
         - Eval/log_likelihood
         - Eval/rmse
         - Eval/calibr_error
+        - Loss/train
         - .time
         - .started
+        - =meta_learner
         - =n_train_samples
         - =n_train_tasks
         - =n_test_context_samples
+        - Loss/val
       flags:
         meta_learner: 'neural_process'
         dataset: 'sin'
