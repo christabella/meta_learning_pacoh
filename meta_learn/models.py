@@ -189,7 +189,7 @@ class CatDist(Distribution):
 
 class NeuralNetwork(torch.nn.Sequential):
     """Trainable neural network kernel function for GPs."""
-    def __init__(self, input_dim=2, output_dim=2, layer_sizes=(64, 64), nonlinearlity=torch.tanh,
+    def __init__(self, input_dim=2, output_dim=2, layer_sizes=(64, 64), nonlinearlity=torch.relu,
                  weight_norm=False, prefix='',):
         super(NeuralNetwork, self).__init__()
         self.nonlinearlity = nonlinearlity
@@ -286,7 +286,7 @@ class LinearVectorized(VectorizedModel):
         self.reset_parameters()
 
     def reset_parameters(self):
-        self.weight = _kaiming_uniform_batched(self.weight, fan=self.input_dim, a=math.sqrt(5), nonlinearity='tanh')
+        self.weight = _kaiming_uniform_batched(self.weight, fan=self.input_dim, a=math.sqrt(5), nonlinearity='relu')
         if self.bias is not None:
             fan_in = self.output_dim
             bound = 1 / math.sqrt(fan_in)
@@ -328,7 +328,7 @@ class LinearVectorized(VectorizedModel):
 class NeuralNetworkVectorized(VectorizedModel):
     """Trainable neural network that batches multiple sets of parameters. That is, each
     """
-    def __init__(self, input_dim, output_dim, layer_sizes=(64, 64), nonlinearlity=torch.tanh):
+    def __init__(self, input_dim, output_dim, layer_sizes=(64, 64), nonlinearlity=torch.relu):
         super().__init__(input_dim, output_dim)
 
         self.nonlinearlity = nonlinearlity
@@ -385,7 +385,7 @@ class NeuralNetworkVectorized(VectorizedModel):
 
 """ Initialization Helpers """
 
-def _kaiming_uniform_batched(tensor, fan, a=0.0, nonlinearity='tanh'):
+def _kaiming_uniform_batched(tensor, fan, a=0.0, nonlinearity='relu'):
     gain = nn.init.calculate_gain(nonlinearity, a)
     std = gain / math.sqrt(fan)
     bound = math.sqrt(3.0) * std  # Calculate uniform bounds from standard deviation
