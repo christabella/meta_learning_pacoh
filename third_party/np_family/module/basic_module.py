@@ -287,7 +287,7 @@ class DeterministicEncoder(nn.Module):
         self.input_dim = input_dim
         self.use_attention = use_attention
 
-        pre_pooling_fn = nn.Sequential(
+        pre_pooling_fn = nn.Sequential(  # 3 hidden layer network
             nn.Linear(self.input_dim, self.latent_dim),
             nn.ReLU(),
             nn.Linear(self.latent_dim, self.latent_dim),
@@ -322,7 +322,7 @@ class DeterministicEncoder(nn.Module):
         assert len(y_context.shape) == 3, \
             'Incorrect shapes: ensure y_context is a rank-3 tensor.'
 
-        decoder_input = torch.cat((x_context, y_context), dim=-1)
+        decoder_input = torch.cat((x_context, y_context), dim=-1).float()
         h = self.pre_pooling_fn(decoder_input)
         return self.pooling_fn(h, x_context, x_target)
 

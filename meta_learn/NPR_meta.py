@@ -166,6 +166,21 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
                     idx = self.rds_numpy.randint(0, len(valid_tuples))
                     image = self.plot_1d_regression(valid_tuples[idx], itr)
                     self.writer.add_image('val_regression_plot', image, itr)
+                    # Validation loss---see if overfitting?
+                    x_context, y_context, x_target, y_target = valid_tuples[idx]
+                    x_context = torch.from_numpy(np.expand_dims(x_context, axis=0)).float()
+                    y_context = torch.from_numpy(np.expand_dims(y_context, axis=0)).float()
+                    x_target = torch.from_numpy(np.expand_dims(x_target, axis=0)).float()
+                    y_target = torch.from_numpy(np.expand_dims(y_target, axis=0)).float()
+                    if self.is_conditional:
+                        mean, var = self.model(x_context, y_context, x_target)
+                        val_loss = compute_loss(mean, var, y_target)
+                    else:
+                        (mean, var), prior, poster = self.model(x_context, y_context, x_target, y_target)
+                        nll_loss = compute_loss(mean, var, y_target)
+                        kl_loss = comput_kl_loss(prior, poster)
+                        val_loss = nll_loss + kl_loss
+                    self.writer.add_scalar("Loss/val", val_loss, itr)
 
                 if verbose:
                     self.logger.info(message)
