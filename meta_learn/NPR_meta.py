@@ -116,13 +116,14 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
         for itr in range(1, n_iter + 1):
 
             loss = 0.0
+            nll_losses, kl_losses = 0.0, 0.0
             self.optimizer.zero_grad()
 
             batch = self.rds_numpy.choice(self.task_dicts, size=self.task_batch_size)
             for task in batch:
                 batch_x = torch.unsqueeze(task["train_x"], dim=0)
                 batch_y = torch.unsqueeze(task["train_y"], dim=0)
-                n_samples = batch_x.shape[0]
+                n_samples = batch_x.shape[1]
                 num_context = self.rds_numpy.randint(10, 40+1)
                 num_extra_target = n_samples - num_context
                 x_context, y_context, x_target, y_target = \
