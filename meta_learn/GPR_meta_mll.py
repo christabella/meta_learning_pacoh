@@ -153,7 +153,7 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
                 self.lr_scheduler.step()
 
                 cum_loss += loss
-                self.writer.add_scalar("Train/loss", loss, itr)
+                self.writer.add_scalar("Loss/train", loss, itr)
 
                 # print training stats stats
                 if itr == 1 or itr % log_period == 0:
