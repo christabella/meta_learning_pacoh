@@ -123,7 +123,7 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
                 batch_x = torch.unsqueeze(task["train_x"], dim=0)
                 batch_y = torch.unsqueeze(task["train_y"], dim=0)
                 n_samples = batch_x.shape[1]
-                num_context = self.rds_numpy.randint(10, 40+1)
+                num_context = self.rds_numpy.randint(3, 47+1)
                 num_extra_target = n_samples - num_context
                 x_context, y_context, x_target, y_target = \
                     context_target_split(batch_x, batch_y,
@@ -162,9 +162,7 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
                     self.writer.add_scalar("Eval/rmse", valid_rmse, itr)
                     self.writer.add_scalar("Eval/calibr_error", calibr_err, itr)
                     # Add image
-                    # idx = 0
-                    idx = self.rds_numpy.randint(0, len(valid_tuples))
-                    image = self.plot_1d_regression(valid_tuples[idx], itr)
+                    image = self.plot_1d_regression(valid_tuples[0], itr)
                     self.writer.add_image('val_regression_plot', image, itr)
                     # Validation loss---see if overfitting?
                     x_context, y_context, x_target, y_target = valid_tuples[idx]
