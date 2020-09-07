@@ -10,20 +10,43 @@
       output-scalars: no
       flags:
         meta_learner: 'neural_process'
-        dataset: 'sin_20'
+        dataset: 'sin'
         random_seed: 25
-        num_iter_fit: 1100
+        num_iter_fit: 1000
         task_batch_size: 4
         lr_decay: 0.97
         lr_params: 1e-3
         r_dim: 32
+        h_dim: 128
         weight_decay: 1e-3
+        n_train_tasks: 10000
+        n_train_samples: 1000
+        n_test_context_samples: 25
+
+    train-all-np:
+      description: Meta-train and test NP
+      main: run_1D_experiments
+      output-scalars: no
+      flags:
+        meta_learner: 'neural_process'
+        dataset: 'sin'
+        random_seed: 25
+        num_iter_fit: 1000
+        task_batch_size: 4
+        lr_decay: 0.97
+        lr_params: 1e-3
+        r_dim: 32
+        h_dim: 128
+        weight_decay: 1e-3
+        n_train_tasks: 10000
+        n_train_samples: 1000
+        n_test_context_samples: 25
 
     train-meta-gpr:
       main: run_1D_experiments
       flags:
         meta_learner: 'gpr_meta_mll'
-        dataset: 'sin_20'
+        dataset: 'sin'
         random_seed: 25
         covar_module: NN
         mean_module: NN
@@ -34,3 +57,5 @@
         lr_params: 1e-3
         mean_nn_layers: 32,32,32,32
         kernel_nn_layers: 32,32,32,32
+        n_train_tasks: 100
+        n_train_samples: 50
