@@ -139,7 +139,7 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
 
                 loss = 0.0
                 self.optimizer.zero_grad()
-                # Sample a batch
+                # Sample a batch of task_dicts.
                 for task_dict in self.rds_numpy.choice(
                         self.task_dicts,
                         size=self.task_batch_size):  # batch size is 4

@@ -76,11 +76,6 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
             # a) prepare data
             x_tensor, y_tensor = self._prepare_data_per_task(train_x, train_y, flatten_y=False)
             task_dict['train_x'], task_dict['train_y'] = x_tensor, y_tensor
-
-            n_samples = train_x.shape[0]
-            task_dict['num_context'] = math.ceil(context_split_ratio * n_samples)
-            task_dict['num_extra_target'] = n_samples - task_dict['num_context']
-
             self.task_dicts.append(task_dict)
 
         # c) prepare inference
@@ -114,22 +109,14 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
 
             loss = 0.0
             self.optimizer.zero_grad()
-                
+
             batch = self.rds_numpy.choice(self.task_dicts, size=self.task_batch_size)
             for task in batch:
                 batch_x = torch.unsqueeze(task["train_x"], dim=0)
                 batch_y = torch.unsqueeze(task["train_y"], dim=0)
-
-                if "num_context" in task:
-                    num_context = task["num_context"]
-                else:
-                    num_context = self.num_context
-                    
-                if "num_extra_target" in task:
-                    num_extra_target = task["num_extra_target"]
-                else:
-                    num_extra_target = self.num_extra_target
-        
+                n_samples = batch_x.shape[0]
+                num_context = self.rds_numpy.randint(3, 47+1)
+                num_extra_target = n_samples - num_context
                 x_context, y_context, x_target, y_target = \
                     context_target_split(batch_x, batch_y,
                                          num_context, num_extra_target)
