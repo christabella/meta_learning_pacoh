@@ -45,6 +45,7 @@ def fit_eval_meta_algo(args):
         'neural_process': NPRegressionMetaLearned,
         'conditional_neural_process': NPRegressionMetaLearned,
         'attentive_conditional_neural_process': NPRegressionMetaLearned,
+        'conv_conditional_neural_process': NPRegressionMetaLearned,
         'neural_process': NPRegressionMetaLearned,
         'attentive_neural_process': NPRegressionMetaLearned,
     }
@@ -54,6 +55,8 @@ def fit_eval_meta_algo(args):
         param_dict['use_attention'] = True
     if "conditional" in meta_learner:
         param_dict['is_conditional'] = True
+    if "conv" in meta_learner:
+        param_dict['is_conv'] = True
     dataset = None
     # 1) Generate Data
     if args.dataset == 'sin-nonstat':

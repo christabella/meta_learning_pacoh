@@ -26,7 +26,7 @@ from config import device
 class NPRegressionMetaLearned(RegressionModelMetaLearned):
 
     def __init__(self, meta_train_data, context_split_ratio=0.5, lr_params=1e-3, r_dim=50, z_dim=50, h_dim=128, num_iter_fit=10000,
-                 weight_decay=1e-2, task_batch_size=5, normalize_data=True, optimizer='Adam', lr_decay=1.0, random_seed=None, use_attention=True, is_conditional=True, image_size=False, **kwargs):
+                 weight_decay=1e-2, task_batch_size=5, normalize_data=True, optimizer='Adam', lr_decay=1.0, random_seed=None, use_attention=True, is_conditional=True, image_size=False, is_conv=False, **kwargs):
         """
         Neural Process regression model (https://arxiv.org/abs/1807.01622) that
         supports meta-learning.
@@ -60,7 +60,10 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
         self.output_dim = meta_train_data[0][1].shape[-1]
         self.is_conditional = is_conditional
         self.image_size = image_size
-        if self.is_conditional:
+        if is_conv:
+            from third_party.np_family.module.convCNP import ConvCNP, UNet
+            self.model = ConvCNP(rho=UNet(), points_per_unit=64, device = device).to(device)
+        elif self.is_conditional:
             self.model = ConditionalNeuralProcess(input_dim=self.input_dim,
                                                   latent_dim=self.h_dim,
                                                   output_dim=self.output_dim,

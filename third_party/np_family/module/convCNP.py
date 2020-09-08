@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from module.utils import init_sequential_weights, init_layer_weights
+from third_party.np_family.module.utils import init_sequential_weights, init_layer_weights
 
 def compute_dists(x, y):
     """Fast computation of pair-wise distances for the 1d case.
@@ -442,6 +442,7 @@ class ConvCNP(nn.Module):
                     torch.max(x_out).cpu().numpy(), 2.) + 0.1
         num_points = int(to_multiple(self.points_per_unit * (x_max - x_min),
                                      self.multiplier))
+        # TODO for 2D support, refer to https://github.com/makora9143/pytorch-convcnp/blob/31340d5cf4/convcnp/models/convcnp2d.py
         x_grid = torch.linspace(x_min, x_max, num_points).to(self.device)
         x_grid = x_grid[None, :, None].repeat(x.shape[0], 1, 1)
 
