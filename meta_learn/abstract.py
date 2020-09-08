@@ -6,6 +6,7 @@ from config import device
 import os
 
 from matplotlib import pyplot as plt
+import seaborn as sns
 import io
 import PIL
 from torchvision.transforms import ToTensor
@@ -154,6 +155,9 @@ class RegressionModelMetaLearned:
         else:
             self.rds_numpy = np.random
 
+        # Just for plotting later ^_^;; with plot_1d_regression
+        sns.set()
+
     def predict(self, context_x, context_y, test_x, **kwargs):
         raise NotImplementedError
 
@@ -285,6 +289,22 @@ class RegressionModelMetaLearned:
         image = PIL.Image.open(buf)
         image = ToTensor()(image)  #.unsqueeze(0)
         return image
+
+    def plot_2d_regression(self, valid_tuple, itr, image_size=None):
+        x_context, y_context, x_test, y_test = valid_tuple
+        pred_mean, pred_std = self.predict(x_context, y_context, x_test)
+        img = np.zeros((image_size, image_size))
+        for (x, y), val in zip(x_test, pred_mean.reshape(-1)):
+            img[int(x), int(y)] = val
+        # for (x, y), val in zip(x_context, y_context):
+        #     img[int(y), int(x)] = val
+
+        cmap = sns.cubehelix_palette(as_cmap=True, reverse=True, light=1, dark=0.35)
+        # plt.imshow(cmap(img))
+        img = cmap(img)
+        plt.imsave(f"images/2d_regression_plot_itr={itr}.png", img.copy())
+        return img
+
     def _calib_error(self, pred_dist_vectorized, test_t_tensor):
         return _calib_error(pred_dist_vectorized, test_t_tensor)
 

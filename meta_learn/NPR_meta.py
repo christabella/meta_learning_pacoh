@@ -3,7 +3,6 @@ import torch
 import time
 import math
 import numpy as np
-import seaborn as sns
 from matplotlib import pyplot as plt
 import io
 from torch.distributions.kl import kl_divergence
@@ -27,7 +26,7 @@ from config import device
 class NPRegressionMetaLearned(RegressionModelMetaLearned):
 
     def __init__(self, meta_train_data, context_split_ratio=0.5, lr_params=1e-3, r_dim=50, z_dim=50, h_dim=128, num_iter_fit=10000,
-                 weight_decay=1e-2, task_batch_size=5, normalize_data=True, optimizer='Adam', lr_decay=1.0, random_seed=None, use_attention=True, is_conditional=True, **kwargs):
+                 weight_decay=1e-2, task_batch_size=5, normalize_data=True, optimizer='Adam', lr_decay=1.0, random_seed=None, use_attention=True, is_conditional=True, image_size=False, **kwargs):
         """
         Neural Process regression model (https://arxiv.org/abs/1807.01622) that
         supports meta-learning.
@@ -60,6 +59,7 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
         self.input_dim = meta_train_data[0][0].shape[-1]
         self.output_dim = meta_train_data[0][1].shape[-1]
         self.is_conditional = is_conditional
+        self.image_size = image_size
         if self.is_conditional:
             self.model = ConditionalNeuralProcess(input_dim=self.input_dim,
                                                   latent_dim=self.h_dim,
@@ -110,8 +110,6 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
 
         if n_iter is None:
             n_iter = self.num_iter_fit
-        # Just for plotting later ^_^;; with plot_1d_regression
-        sns.set()
         for itr in range(1, n_iter + 1):
 
             loss = 0.0
@@ -162,8 +160,12 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
                     self.writer.add_scalar("Eval/rmse", valid_rmse, itr)
                     self.writer.add_scalar("Eval/calibr_error", calibr_err, itr)
                     # Add image
-                    image = self.plot_1d_regression(valid_tuples[0], itr)
-                    self.writer.add_image('val_regression_plot', image, itr)
+                    if self.image_size:
+                        image = self.plot_2d_regression(valid_tuples[0], itr, image_size=self.image_size)
+                        self.writer.add_image('val_regression_plot', image, itr, dataformats='HWC')
+                    else:
+                        image = self.plot_1d_regression(valid_tuples[0], itr)
+                        self.writer.add_image('val_regression_plot', image, itr)
                     # Validation loss---see if overfitting?
                     val_loss = 0.0
                     for valid_tuple in valid_tuples:
@@ -172,6 +174,9 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
                         y_context = torch.from_numpy(np.expand_dims(y_context, axis=0)).float()
                         x_target = torch.from_numpy(np.expand_dims(x_target, axis=0)).float()
                         y_target = torch.from_numpy(np.expand_dims(y_target, axis=0)).float()
+                        if self.image_size:
+                            y_context = torch.unsqueeze(y_context, -1)
+                            y_target = torch.unsqueeze(y_target, -1)
                         if self.is_conditional:
                             mean, var = self.model(x_context, y_context, x_target)
                             val_loss += compute_loss(mean, var, y_target)

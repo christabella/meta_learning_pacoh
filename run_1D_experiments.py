@@ -63,7 +63,8 @@ def fit_eval_meta_algo(args):
     elif args.dataset == 'cauchy':
         dataset = CauchyDataset(random_state=np.random.RandomState(DATA_SEED + 1))
     elif args.dataset == 'mnist':
-        dataset = MNISTRegressionDataset(random_state=np.random.RandomState(DATA_SEED + 1))
+        dataset = MNISTRegressionDataset(random_state=np.random.RandomState(DATA_SEED + 1), context_mask=args.context_mask)
+        param_dict['image_size'] = 28
     elif args.dataset == 'physionet':
         dataset = PhysionetDataset(random_state=np.random.RandomState(DATA_SEED + 1))
     elif args.dataset == 'gp-funcs':
@@ -72,14 +73,14 @@ def fit_eval_meta_algo(args):
     # Actually even if NP, put *everything* into the meta_train, since within
     # NPR_meta we further do the splitting based on context_split_ratio.
     data_train = dataset.generate_meta_train_data(
-        n_tasks=args.n_train_tasks, n_samples=args.n_train_samples
+        n_tasks=args.n_train_tasks, n_samples=args.n_samples_per_task
     )
 
     data_test = dataset.generate_meta_test_data(
         n_tasks=args.n_test_tasks,
         n_samples_context=args.n_test_context_samples,
         # The "extra target"
-        n_samples_test=args.n_test_samples - args.n_test_context_samples,
+        n_samples_test=args.n_samples_per_task - args.n_test_context_samples,
     )
 
     # 2) Fit model (meta-learning/meta-training)
@@ -139,13 +140,13 @@ if __name__ == '__main__':
         description='Run meta mll hyper-parameter search.')
     parser.add_argument('--meta_learner', type=str, default='neural_process')
     parser.add_argument('--dataset', type=str)
+    parser.add_argument('--context_mask', type=str)
     parser.add_argument('--random_seed', type=int, help='Seed for the model.')
     parser.add_argument('--num_iter_fit', type=int)
     parser.add_argument('--task_batch_size', type=int)
     parser.add_argument('--n_train_tasks', type=int)
-    parser.add_argument('--n_train_samples', type=int, default=50)
+    parser.add_argument('--n_samples_per_task', type=int, default=50)
     parser.add_argument('--n_test_tasks', type=int, default=200)
-    parser.add_argument('--n_test_samples', type=int, default=50)
     parser.add_argument('--n_test_context_samples', type=int, default=5)
     parser.add_argument('--r_dim', type=int)
     parser.add_argument('--h_dim', type=int)

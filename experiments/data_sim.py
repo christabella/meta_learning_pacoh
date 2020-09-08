@@ -134,11 +134,13 @@ class PhysionetDataset(MetaDataset):
 
 
 class MNISTRegressionDataset(MetaDataset):
-    def __init__(self, random_state=None, dtype=np.float32):
+    def __init__(self, random_state=None, dtype=np.float32, context_mask=None):
         import mnist
 
         super().__init__(random_state)
         self.dtype = dtype
+        self.context_mask = context_mask
+        assert context_mask in ["top_half", "left_half", None]
 
         mnist_dir = MNIST_DIR if os.path.isdir(MNIST_DIR) else None
 
@@ -153,23 +155,24 @@ class MNISTRegressionDataset(MetaDataset):
         self.test_images = self.test_images / 255.0
 
     def generate_meta_train_data(self, n_tasks, n_samples):
-
+        print(f"Training data has shape {self.train_images.shape}")
         meta_train_tuples = []
-
+        # Take only # n_tasks images...
         train_indices = self.random_state.choice(
             self.train_images.shape[0], size=n_tasks, replace=False
         )
 
         for idx in train_indices:
+            # Take the whole image as context to train on.
             x_context, t_context, _, _ = self._image_to_context_transform(
-                self.train_images[idx], n_samples
+                self.train_images[idx], n_samples, context_mask="full"
             )
             meta_train_tuples.append((x_context, t_context))
 
         return meta_train_tuples
 
     def generate_meta_test_data(self, n_tasks, n_samples_context, n_samples_test=-1):
-
+        """Ignore n_samples_test because we'll always take the full image."""
         meta_test_tuples = []
 
         test_indices = self.random_state.choice(
@@ -178,21 +181,14 @@ class MNISTRegressionDataset(MetaDataset):
 
         for idx in test_indices:
             x_context, t_context, x_test, t_test = self._image_to_context_transform(
-                self.train_images[idx], n_samples_context
+                self.train_images[idx], n_samples_context, context_mask=self.context_mask
             )
-
-            # chose only subsam
-            if n_samples_test > 0 and n_samples_test < x_test.shape[0]:
-                indices = self.random_state.choice(
-                    x_test.shape[0], size=n_samples_test, replace=False
-                )
-                x_test, t_test = x_test[indices], t_test[indices]
 
             meta_test_tuples.append((x_context, t_context, x_test, t_test))
 
         return meta_test_tuples
 
-    def _image_to_context_transform(self, image, num_context_points):
+    def _image_to_context_transform(self, image, num_context_points, context_mask=None):
         """From a HxW square image, produce context and test indices and values."""
         assert image.ndim == 2 and image.shape[0] == image.shape[1]
         image_size = image.shape[0]
@@ -200,12 +196,17 @@ class MNISTRegressionDataset(MetaDataset):
 
         xx, yy = np.meshgrid(np.arange(image_size), np.arange(image_size))
         indices = np.array(list(zip(xx.flatten(), yy.flatten())))
-        # Pick num_context_points pixels randomly.
-        context_indices = indices[
-            self.random_state.choice(
-                image_size ** 2, size=num_context_points, replace=False
-            )
-        ]
+        if context_mask == "full":
+            context_indices = indices
+        elif context_mask == "top_half":
+            context_indices = indices[:(image_size ** 2) // 2]
+        else:
+            # Pick num_context_points pixels randomly.
+            context_indices = indices[
+                self.random_state.choice(
+                    image_size ** 2, size=num_context_points, replace=False
+                )
+            ]
         context_values = image[tuple(zip(*context_indices))]
 
         dtype_indices = {
@@ -213,11 +214,11 @@ class MNISTRegressionDataset(MetaDataset):
             "formats": 2 * [indices.dtype],
         }
 
-        # indices that have not been used as context
-        test_indices_structured = np.setdiff1d(
-            indices.view(dtype_indices), context_indices.view(dtype_indices)
-        )
-        test_indices = test_indices_structured.view(indices.dtype).reshape(-1, 2)
+        # Use entire image as target.
+        # test_indices_structured = np.setdiff1d(
+        #     indices.view(dtype_indices), context_indices.view(dtype_indices)
+        # )
+        test_indices = indices.view(indices.dtype).reshape(-1, 2)
 
         test_values = image[tuple(zip(*test_indices))]
 
