@@ -74,7 +74,11 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
 
         # Setup components that are shared across tasks
         self.shared_parameters = self.model.parameters()
-
+        # num_params = 0
+        # for param in list(self.shared_parameters):
+        #     num_params += np.prod(param.clone().size())
+        # print(f'Num_params: {num_params}')
+        # self.writer.add_scalar("Misc/num_params", num_params, 1)
         # Setup components that are different across tasks
         self.task_dicts = []
 

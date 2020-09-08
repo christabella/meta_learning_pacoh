@@ -127,14 +127,14 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
 
         assert (valid_tuples is None) or (all(
             [len(valid_tuple) == 4 for valid_tuple in valid_tuples]))
-
+        #print('len(self.shared_parameters)')
+        #print(len(self.shared_parameters))
         if len(self.shared_parameters) > 0:
             t = time.time()
             cum_loss = 0.0
 
             if n_iter is None:
                 n_iter = self.num_iter_fit
-            # TODO(bella)
             for itr in range(1, n_iter + 1):
 
                 loss = 0.0
