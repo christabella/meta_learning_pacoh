@@ -29,8 +29,9 @@ class ConditionalNeuralProcess(nn.Module):
 
         self.encoder = \
             DeterministicEncoder(input_dim=self.input_dim + self.output_dim,
-                            latent_dim=self.latent_dim,
-                            use_attention=use_attention)
+                                 latent_dim=self.latent_dim,
+                                 attent_input_dim=self.input_dim,
+                                 use_attention=use_attention)
         self.decoder = DeterministicDecoder(input_dim=self.input_dim,
                                        latent_dim=self.latent_dim,
                                        output_dim=self.output_dim)

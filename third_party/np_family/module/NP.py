@@ -29,9 +29,9 @@ class NeuralProcess(nn.Module):
 
         self.deter_encoder = \
             DeterministicEncoder(input_dim=self.input_dim + self.output_dim,
-                                 attent_input_dim = self.input_dim,
-                            latent_dim=self.latent_dim,
-                            use_attention=use_attention)
+                                 attent_input_dim=self.input_dim,
+                                 latent_dim=self.latent_dim,
+                                 use_attention=use_attention)
 
         self.latent_encoder = \
             LatentEncoder(input_dim=self.input_dim + self.output_dim,
