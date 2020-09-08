@@ -26,7 +26,7 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
                  normalize_data=True,
                  optimizer='Adam',
                  lr_decay=1.0,
-                 random_seed=None,
+                 random_seed=None, image_size=False,
                  **kwargs):
         """
         Meta-Learning GP priors (i.e. mean and kernel function) via PACOH-MAP
@@ -77,7 +77,7 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
             'params': self.likelihood.parameters(),
             'lr': self.lr_params
         })
-
+        self.image_size = image_size
         # Setup components that are different across tasks
         self.task_dicts = []
 
@@ -176,8 +176,12 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
                         self.writer.add_scalar("Eval/log_likelihood", valid_ll, itr)
                         self.writer.add_scalar("Eval/rmse", valid_rmse, itr)
                         self.writer.add_scalar("Eval/calibr_error", calibr_err, itr)
-                        image = self.plot_1d_regression(valid_tuples[0], itr)
-                        self.writer.add_image('val_regression_plot', image, itr)
+                        if self.image_size:
+                            image = self.plot_2d_regression(valid_tuples[0], itr, image_size=self.image_size)
+                            self.writer.add_image('val_regression_plot', image, itr, dataformats='HWC')
+                        else:
+                            image = self.plot_1d_regression(valid_tuples[0], itr)
+                            self.writer.add_image('val_regression_plot', image, itr)
 
                     if verbose:
                         self.logger.info(message)
