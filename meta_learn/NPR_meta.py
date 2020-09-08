@@ -121,7 +121,7 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
                 batch_x = torch.unsqueeze(task["train_x"], dim=0)
                 batch_y = torch.unsqueeze(task["train_y"], dim=0)
                 n_samples = batch_x.shape[1]
-                num_context = self.rds_numpy.randint(3, 47+1)
+                num_context = self.rds_numpy.randint(round(n_samples * 0.1), round(n_samples * 0.9)+1)
                 num_extra_target = n_samples - num_context
                 x_context, y_context, x_target, y_target = \
                     context_target_split(batch_x, batch_y,
