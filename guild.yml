@@ -9,7 +9,7 @@
       main: run_1D_experiments
       output-scalars: no
       compare:
-        - step
+        - .step
         - Eval/log_likelihood
         - Eval/rmse
         - Eval/calibr_error
@@ -18,11 +18,13 @@
         - .time
         - .started
         - =meta_learner
+        - =covar_module
+        - =mean_module
         - =n_samples_per_task
         - =n_train_tasks
         - =n_test_context_samples
         - =num_iter_fit
-        - Val/loss
+        - Eval/loss
       flags:
         meta_learner: 'neural_process'
         dataset: 'sin'

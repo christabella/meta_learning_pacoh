@@ -192,7 +192,7 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
                             nll_loss = compute_loss(mean, var, y_target)
                             kl_loss = comput_kl_loss(prior, poster)
                             val_loss += nll_loss + kl_loss
-                    self.writer.add_scalar("Val/loss", val_loss, itr)
+                    self.writer.add_scalar("Eval/loss", val_loss, itr)
 
                 if verbose:
                     self.logger.info(message)
