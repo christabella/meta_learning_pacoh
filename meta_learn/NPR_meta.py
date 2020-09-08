@@ -148,7 +148,7 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
             self.optimizer.step()
             self.lr_scheduler.step()
 
-            self.writer.add_scalar("Loss/train", loss, itr)
+            self.writer.add_scalar("Loss/train_NP", loss, itr)
             self.writer.add_scalar("Loss/kl_loss", kl_losses, itr)
             self.writer.add_scalar("Loss/nll_loss", nll_losses, itr)
 
@@ -192,7 +192,7 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
                             nll_loss = compute_loss(mean, var, y_target)
                             kl_loss = comput_kl_loss(prior, poster)
                             val_loss += nll_loss + kl_loss
-                    self.writer.add_scalar("Loss/val", val_loss, itr)
+                    self.writer.add_scalar("Val/loss", val_loss, itr)
 
                 if verbose:
                     self.logger.info(message)

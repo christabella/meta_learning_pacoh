@@ -14,13 +14,15 @@
         - Eval/rmse
         - Eval/calibr_error
         - Loss/train
+        - Loss/train_NP
         - .time
         - .started
         - =meta_learner
-        - =n_train_samples
+        - =n_samples_per_task
         - =n_train_tasks
         - =n_test_context_samples
-        - Loss/val
+        - =num_iter_fit
+        - Val/loss
       flags:
         meta_learner: 'neural_process'
         dataset: 'sin'
@@ -32,9 +34,9 @@
         h_dim: 128
         weight_decay: 1e-3
         n_train_tasks: 100
-        n_train_samples: 50
+        n_samples_per_task: 50
         n_test_context_samples: 5
-
+        context_mask: None
     train-all-np:
       description: Meta-train and test NP
       main: run_1D_experiments
@@ -50,7 +52,7 @@
         h_dim: 128
         weight_decay: [1e-4, 1e-3, 1e-2]
         n_train_tasks: [100, 1000]
-        n_train_samples: [25, 50, 100, 250]
+        n_samples_per_task: [25, 50, 100, 250]
         n_test_context_samples: 5
 
     train-meta-gpr:
@@ -69,5 +71,6 @@
         mean_nn_layers: 32,32,32,32
         kernel_nn_layers: 32,32,32,32
         n_train_tasks: 100
-        n_train_samples: 50
+        n_samples_per_task: 50
         n_test_context_samples: 5
+        context_mask: None
