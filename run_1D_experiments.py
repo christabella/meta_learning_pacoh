@@ -166,5 +166,10 @@ if __name__ == '__main__':
 
     print('Running', os.path.abspath(__file__), '\n')
     print('\n')
-
-    fit_eval_meta_algo(args)
+    try:
+        fit_eval_meta_algo(args)
+    except:
+        import traceback, pdb, sys
+        traceback.print_exc()
+        print('')
+        pdb.post_mortem()
