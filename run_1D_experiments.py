@@ -78,17 +78,18 @@ def fit_eval_meta_algo(args):
     data_train = dataset.generate_meta_train_data(
         n_tasks=args.n_train_tasks, n_samples=args.n_samples_per_task
     )
-
+    print(f"Data_train: {[x.shape for x in data_train[0]]}")
     data_test = dataset.generate_meta_test_data(
         n_tasks=args.n_test_tasks,
         n_samples_context=args.n_test_context_samples,
         # The "extra target"
         n_samples_test=args.n_samples_per_task - args.n_test_context_samples,
     )
+    print(f"Data_test: {[x.shape for x in data_test[0]]}")
 
     # 2) Fit model (meta-learning/meta-training)
     model = meta_learner_cls(data_train, **param_dict)
-    EVAL_EVERY = args.num_iter_fit / 10  # Tensorboard can only show 10 images anyway...
+    EVAL_EVERY = args.num_iter_fit / 20  # Tensorboard can only show 10 images anyway...
     model.meta_fit(data_test,  # Pass in data_test as validation since we don't
                    # really do anything with it e.g. early stopping...
                    log_period=EVAL_EVERY)

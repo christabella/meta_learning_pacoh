@@ -300,9 +300,7 @@ class RegressionModelMetaLearned:
         #     img[int(y), int(x)] = val
 
         cmap = sns.cubehelix_palette(as_cmap=True, reverse=True, light=1, dark=0.35)
-        # plt.imshow(cmap(img))
         img = cmap(img)
-        plt.imsave(f"images/2d_regression_plot_itr={itr}.png", img.copy())
         return img
 
     def _calib_error(self, pred_dist_vectorized, test_t_tensor):

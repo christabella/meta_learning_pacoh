@@ -168,8 +168,10 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
                     self.writer.add_scalar("Eval/calibr_error", calibr_err, itr)
                     # Add image
                     if self.image_size:
-                        image = self.plot_2d_regression(valid_tuples[0], itr, image_size=self.image_size)
-                        self.writer.add_image('val_regression_plot', image, itr, dataformats='HWC')
+                        for idx in range(5):
+                            image = self.plot_2d_regression(valid_tuples[idx], itr, image_size=self.image_size)
+                            plt.imsave(f"images/2d_regression_plot_itr={itr}.png", image.copy())
+                            self.writer.add_image(f'val_regression_plot_{idx}', image, itr, dataformats='HWC')
                     else:
                         image = self.plot_1d_regression(valid_tuples[0], itr)
                         self.writer.add_image('val_regression_plot', image, itr)
@@ -193,6 +195,9 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
                             kl_loss = comput_kl_loss(prior, poster)
                             val_loss += nll_loss + kl_loss
                     self.writer.add_scalar("Eval/loss", val_loss, itr)
+                    file = ('model_serialization.pkl')
+                    torch.save(model.state_dict(), file)
+
 
                 if verbose:
                     self.logger.info(message)

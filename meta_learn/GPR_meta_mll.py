@@ -3,6 +3,7 @@ import gpytorch
 import time
 
 import numpy as np
+from matplotlib import pyplot as plt
 
 from meta_learn.models import LearnedGPRegressionModel, NeuralNetwork, AffineTransformedDistribution
 from meta_learn.util import _handle_input_dimensionality, DummyLRScheduler
@@ -177,11 +178,15 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
                         self.writer.add_scalar("Eval/rmse", valid_rmse, itr)
                         self.writer.add_scalar("Eval/calibr_error", calibr_err, itr)
                         if self.image_size:
-                            image = self.plot_2d_regression(valid_tuples[0], itr, image_size=self.image_size)
-                            self.writer.add_image('val_regression_plot', image, itr, dataformats='HWC')
+                            for idx in range(5):
+                                image = self.plot_2d_regression(valid_tuples[idx], itr, image_size=self.image_size)
+                                plt.imsave(f"images/2d_regression_plot_{idx}_itr={itr}.png", image.copy())
+                                self.writer.add_image(f'val_regression_plot_{idx}', image, itr, dataformats='HWC')
                         else:
                             image = self.plot_1d_regression(valid_tuples[0], itr)
                             self.writer.add_image('val_regression_plot', image, itr)
+                    file = (f'model_serialization_{itr}.pkl')
+                    torch.save(self.state_dict(), file)
 
                     if verbose:
                         self.logger.info(message)
@@ -380,7 +385,6 @@ if __name__ == "__main__":
     NN_LAYERS = (32, 32, 32, 32)
 
     plot = False
-    from matplotlib import pyplot as plt
 
     if plot:
         for x_train, y_train in meta_train_data:
