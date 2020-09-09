@@ -199,6 +199,11 @@ class MNISTRegressionDataset(MetaDataset):
         if context_mask == "full":
             context_indices = indices
         elif context_mask == "top_half":
+            # Only top half of rows
+            xx, yy = np.meshgrid(np.arange(image_size//2), np.arange(image_size))
+            context_indices = np.array(list(zip(xx.flatten(), yy.flatten())))
+        elif context_mask == "left_half":
+            # == np.meshgrid(np.arange(image_size), np.arange(image_size//2))
             context_indices = indices[:(image_size ** 2) // 2]
         else:
             # Pick num_context_points pixels randomly.
