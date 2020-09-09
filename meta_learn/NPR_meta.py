@@ -195,8 +195,8 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
                             kl_loss = comput_kl_loss(prior, poster)
                             val_loss += nll_loss + kl_loss
                     self.writer.add_scalar("Eval/loss", val_loss, itr)
-                    file = ('model_serialization.pkl')
-                    torch.save(model.state_dict(), file)
+                    file = (f'model_serialization_{itr}.pkl')
+                    torch.save(self.state_dict(), file)
 
 
                 if verbose:
