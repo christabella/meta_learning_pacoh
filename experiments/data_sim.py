@@ -10,8 +10,7 @@ X_HIGH = 5
 Y_HIGH = 2.5
 Y_LOW = -2.5
 
-PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(PROJECT_DIR, "data")
+DATA_DIR = "data"  # Relative path
 MNIST_DIR = os.path.join(DATA_DIR, "mnist")
 PHYSIONET_DIR = os.path.join(DATA_DIR, "physionet2012")
 SWISSFEL_DIR = os.path.join(DATA_DIR, "swissfel")

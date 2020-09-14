@@ -5,6 +5,8 @@
     - guild.yml
   operations:
     train-np:
+      requires:
+        - file: data
       description: Meta-train and test NP
       main: run_1D_experiments
       output-scalars: no
@@ -39,26 +41,11 @@
         n_samples_per_task: 50
         n_test_context_samples: 5
         context_mask: None
-    train-all-np:
-      description: Meta-train and test NP
-      main: run_1D_experiments
-      output-scalars: no
-      flags:
-        meta_learner: ['neural_process','conditional_neural_process', 'attentive_conditional_neural_process', 'attentive_neural_process']
-        dataset: 'sin'
-        random_seed: [25, 26, 27]
-        num_iter_fit: 1000
-        task_batch_size: [4, 16]
-        lr_decay: [0.97, 0.98, 0.99, 1]
-        lr_params: [5e-3, 1e-3, 5e-4, 1e-4, 1e-5]
-        h_dim: 128
-        weight_decay: [1e-4, 1e-3, 1e-2]
-        n_train_tasks: [100, 1000]
-        n_samples_per_task: [25, 50, 100, 250]
-        n_test_context_samples: 5
-
     train-meta-gpr:
       main: run_1D_experiments
+      requires:
+        - file: data
+          # This tells Guild to create a link to your project data dir in the run directory.
       flags:
         meta_learner: 'gpr_meta_mll'
         dataset: 'sin'
