@@ -290,6 +290,8 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
                 'weight_decay':
                 self.weight_decay
             })
+            # Output dimensionality of NN-kernel map ("learned_kernel") is input
+            # dim of conventional kernel; each dim gets its own lengthscale.
             self.covar_module = gpytorch.kernels.ScaleKernel(
                 gpytorch.kernels.RBFKernel(
                     ard_num_dims=feature_dim)).to(device)

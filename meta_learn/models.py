@@ -489,6 +489,11 @@ class GaussianLikelihoodLight(gpytorch.likelihoods._GaussianLikelihoodBase):
 class LearnedGPRegressionModel(gpytorch.models.ExactGP):
     """GP model which can take a learned mean and learned kernel function."""
     def __init__(self, train_x, train_y, likelihood, learned_kernel=None, learned_mean=None, mean_module=None, covar_module=None):
+        """
+        Args:
+          learned_kernel: a NeuralNetwork
+          learned_mean: a NeuralNetwork
+        """
         super(LearnedGPRegressionModel, self).__init__(train_x, train_y, likelihood)
 
         if mean_module is None:
@@ -503,19 +508,23 @@ class LearnedGPRegressionModel(gpytorch.models.ExactGP):
         self.likelihood = likelihood
 
     def forward(self, x):
-        # feed through kernel NN
+        # feed through kernel NN (input_dim -> feature_dim)
         if self.learned_kernel is not None:
             projected_x = self.learned_kernel(x)
         else:
             projected_x = x
+        covar_x = self.covar_module(projected_x)
 
-        # feed through mean module
+        # feed through mean NN (input_dim -> 1)
         if self.learned_mean is not None:
+            # This definitely means it can be non-stationary...
             mean_x = self.learned_mean(x).squeeze()
         else:
-            mean_x = self.mean_module(projected_x).squeeze()
+            # Or feed through gpytorch.means.ZeroMean() etc.
+            # This simply means a zero tensor of dimension input_dim :P
+            # Doesn't matter if it's "x" or "projected_x".
+            mean_x = self.mean_module(x).squeeze()
 
-        covar_x = self.covar_module(projected_x)
         return gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
 
     def prior(self, x):
