@@ -175,7 +175,6 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
                     elif self.input_dim == 1:
                         for idx in range(5):
                             image = self.plot_1d_regression(valid_tuples[idx], itr)
-                            plt.imsave(f"images/1d_regression_plot_itr={itr}.png", image.copy())
                             self.writer.add_image('val_regression_plot_{idx}', image, itr)
                     # Validation loss---see if overfitting?
                     val_loss = 0.0
