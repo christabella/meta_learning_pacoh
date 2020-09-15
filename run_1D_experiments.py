@@ -17,7 +17,7 @@ from meta_learn.NPR_meta import NPRegressionMetaLearned
 from meta_learn.MAML import MAMLRegression
 
 from experiments.data_sim import SinusoidNonstationaryDataset, MNISTRegressionDataset, \
-    PhysionetDataset, GPFunctionsDataset, SinusoidDataset, CauchyDataset, provide_data
+    PhysionetDataset, GPFunctionsDataset, SinusoidDataset, CauchyDataset, SwissfelDataset, provide_data
 
 DATASETS = [
     '%s_%i' % (dataset, n_tasks) for n_tasks in [5, 10, 20, 40, 80, 160, 320]
@@ -30,6 +30,42 @@ LAYER_SIZES = [32, 32, 32, 32]
 
 
 def fit_eval_meta_algo(args):
+    dataset = None
+    # 1) Generate Data
+    if args.dataset == 'sin-nonstat':
+        dataset = SinusoidNonstationaryDataset(random_state=np.random.RandomState(DATA_SEED + 1))
+    elif args.dataset == 'sin':
+        dataset = SinusoidDataset(random_state=np.random.RandomState(DATA_SEED + 1))
+    elif args.dataset == 'cauchy':
+        dataset = CauchyDataset(random_state=np.random.RandomState(DATA_SEED + 1), ndim_x=1)
+    elif args.dataset == 'mnist':
+        dataset = MNISTRegressionDataset(random_state=np.random.RandomState(DATA_SEED + 1), context_mask=args.context_mask)
+        param_dict['image_size'] = 28
+    elif args.dataset == 'physionet':
+        dataset = PhysionetDataset(random_state=np.random.RandomState(DATA_SEED + 1))
+        args.n_test_context_samples = 24  # Use first 24 hours as context
+        args.n_samples_per_task = 47  # Total is 48 hours.
+        args.n_train_tasks = 200
+        args.n_test_tasks = 200
+    elif args.dataset == 'gp-funcs':
+        dataset = GPFunctionsDataset(random_state=np.random.RandomState(DATA_SEED + 1))
+    elif args.dataset == 'swissfel':
+        dataset = SwissfelDataset(random_state=np.random.RandomState(DATA_SEED + 1))
+    # If NP, split meta-test into context-target, else put everything into "context"self.
+    # Actually even if NP, put *everything* into the meta_train, since within
+    # NPR_meta we further do the splitting based on context_split_ratio.
+    data_train = dataset.generate_meta_train_data(
+        n_tasks=args.n_train_tasks, n_samples=args.n_samples_per_task
+    )
+    print(f"Data_train: {len(data_train)} tasks where first has shape {[x.shape for x in data_train[0]]}")
+    data_test = dataset.generate_meta_test_data(
+        n_tasks=args.n_test_tasks,
+        n_samples_context=args.n_test_context_samples,
+        # The "extra target"
+        n_samples_test=args.n_samples_per_task - args.n_test_context_samples,
+    )
+    print(f"Data_test: {len(data_test)} tasks where first has shape {[x.shape for x in data_test[0]]}")
+    # 2) Fit model (meta-learning/meta-training)
     param_dict = vars(args)
     if param_dict['mean_nn_layers']:
         param_dict['mean_nn_layers'] = [int(n) for n in param_dict['mean_nn_layers'].split(',')]
@@ -57,37 +93,6 @@ def fit_eval_meta_algo(args):
         param_dict['is_conditional'] = True
     if "conv" in meta_learner:
         param_dict['is_conv'] = True
-    dataset = None
-    # 1) Generate Data
-    if args.dataset == 'sin-nonstat':
-        dataset = SinusoidNonstationaryDataset(random_state=np.random.RandomState(DATA_SEED + 1))
-    elif args.dataset == 'sin':
-        dataset = SinusoidDataset(random_state=np.random.RandomState(DATA_SEED + 1))
-    elif args.dataset == 'cauchy':
-        dataset = CauchyDataset(random_state=np.random.RandomState(DATA_SEED + 1), ndim_x=1)
-    elif args.dataset == 'mnist':
-        dataset = MNISTRegressionDataset(random_state=np.random.RandomState(DATA_SEED + 1), context_mask=args.context_mask)
-        param_dict['image_size'] = 28
-    elif args.dataset == 'physionet':
-        dataset = PhysionetDataset(random_state=np.random.RandomState(DATA_SEED + 1))
-    elif args.dataset == 'gp-funcs':
-        dataset = GPFunctionsDataset(random_state=np.random.RandomState(DATA_SEED + 1))
-    # If NP, split meta-test into context-target, else put everything into "context"self.
-    # Actually even if NP, put *everything* into the meta_train, since within
-    # NPR_meta we further do the splitting based on context_split_ratio.
-    data_train = dataset.generate_meta_train_data(
-        n_tasks=args.n_train_tasks, n_samples=args.n_samples_per_task
-    )
-    print(f"Data_train: {len(data_train)} tasks where first has shape {[x.shape for x in data_train[0]]}")
-    data_test = dataset.generate_meta_test_data(
-        n_tasks=args.n_test_tasks,
-        n_samples_context=args.n_test_context_samples,
-        # The "extra target"
-        n_samples_test=args.n_samples_per_task - args.n_test_context_samples,
-    )
-    print(f"Data_test: {len(data_test)} tasks where first has shape {[x.shape for x in data_test[0]]}")
-
-    # 2) Fit model (meta-learning/meta-training)
     model = meta_learner_cls(data_train, **param_dict)
     EVAL_EVERY = args.num_iter_fit / 20  # Tensorboard can only show 10 images anyway...
     model.meta_fit(data_test,  # Pass in data_test as validation since we don't
