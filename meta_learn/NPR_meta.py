@@ -172,18 +172,19 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
                             image = self.plot_2d_regression(valid_tuples[idx], itr, image_size=self.image_size)
                             plt.imsave(f"images/2d_regression_plot_itr={itr}.png", image.copy())
                             self.writer.add_image(f'val_regression_plot_{idx}', image, itr, dataformats='HWC')
-                    else:
+                    elif self.input_dim == 1:
                         image = self.plot_1d_regression(valid_tuples[0], itr)
                         self.writer.add_image('val_regression_plot', image, itr)
                     # Validation loss---see if overfitting?
                     val_loss = 0.0
                     for valid_tuple in valid_tuples:
                         x_context, y_context, x_target, y_target = valid_tuple
+                        # Add batch dimension of 1 in front
                         x_context = torch.from_numpy(np.expand_dims(x_context, axis=0)).float()
                         y_context = torch.from_numpy(np.expand_dims(y_context, axis=0)).float()
                         x_target = torch.from_numpy(np.expand_dims(x_target, axis=0)).float()
                         y_target = torch.from_numpy(np.expand_dims(y_target, axis=0)).float()
-                        if self.image_size:
+                        if self.image_size:  # Add "channel" dimension
                             y_context = torch.unsqueeze(y_context, -1)
                             y_target = torch.unsqueeze(y_target, -1)
                         if self.is_conditional:

@@ -264,7 +264,10 @@ class RegressionModelMetaLearned:
     def plot_1d_regression(self, valid_tuple, itr):
         """Save figure as a PGF and send to tensorboard."""
         x_context, y_context, x_test, y_test = valid_tuple
-        x_plot = np.linspace(-5, 5, num=150)
+        x_min = min(min(x_context), min(x_test))[0]
+        x_max = max(max(x_context), max(x_test))[0]
+        x_buffer = 0.15 * (x_max - x_min)
+        x_plot = np.linspace(x_min - x_buffer, x_max + x_buffer, num=250)
         pred_mean, pred_std = self.predict(x_context, y_context, x_plot)
         ucb, lcb = self.confidence_intervals(x_context, y_context, x_plot, confidence=0.9)
 
@@ -272,7 +275,7 @@ class RegressionModelMetaLearned:
         if ucb.ndim > 2 and ucb.shape[2] == ucb.shape[1]:  # NP edge case
             ucb = ucb[0][:,0]
             lcb = lcb[0][:,0]
-        plt.fill_between(x_plot, lcb, ucb, alpha=0.3, label='90% confidence interval', color='orchid')
+        plt.fill_between(x_plot, lcb.flatten(), ucb.flatten(), alpha=0.3, label='90% confidence interval', color='orchid')
         plt.scatter(x_context, y_context, label='Context set $\{ \mathbf{X}_C, \mathbf{X}_C \}$', color='blue')
         plt.scatter(x_test, y_test, label='Target set $\{ \mathbf{X}_T, \mathbf{X}_T \}$', color='black', alpha=0.25)
         plt.legend()

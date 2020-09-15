@@ -78,8 +78,8 @@ class PhysionetDataset(MetaDataset):
             values = df.values.astype(self.dtype)
             times_context = [time for time in times if time <= n_samples]
             if len(times_context) > 4:
-                times = np.array(times, dtype=self.dtype)
-                meta_train_tuples.append((times, values))
+                times = np.array(times, dtype=self.dtype).reshape(-1, 1)
+                meta_train_tuples.append((times, values.reshape(-1, 1)))
             else:
                 continue
             if len(meta_train_tuples) >= n_tasks:
@@ -113,12 +113,12 @@ class PhysionetDataset(MetaDataset):
             values = df.values.astype(self.dtype)
             times_context = [time for time in times if time <= n_samples_context]
             if len(times_context) > 4:
-                times_context = np.array(times_context, dtype=self.dtype)
+                times_context = np.array(times_context, dtype=self.dtype).reshape(-1, 1)
                 # Since times aremonotonically increasing
-                values_context = values[: len(times_context)]
+                values_context = np.array(values[: len(times_context)]).reshape(-1, 1)
                 # Take full set (so context is a subset of target/test)
-                times_test = np.array(times, dtype=self.dtype)
-                values_test = values
+                times_test = np.array(times, dtype=self.dtype).reshape(-1, 1)
+                values_test = values.reshape(-1, 1)
                 meta_test_tuples.append(
                     (times_context, values_context, times_test, values_test)
                 )

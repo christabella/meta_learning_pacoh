@@ -177,12 +177,13 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
                         self.writer.add_scalar("Eval/log_likelihood", valid_ll, itr)
                         self.writer.add_scalar("Eval/rmse", valid_rmse, itr)
                         self.writer.add_scalar("Eval/calibr_error", calibr_err, itr)
+                        print(f"input: {self.input_dim}, img: {self.image_size}")
                         if self.image_size:
                             for idx in range(5):
                                 image = self.plot_2d_regression(valid_tuples[idx], itr, image_size=self.image_size)
                                 plt.imsave(f"images/2d_regression_plot_{idx}_itr={itr}.png", image.copy())
                                 self.writer.add_image(f'val_regression_plot_{idx}', image, itr, dataformats='HWC')
-                        else:
+                        elif self.input_dim == 1:
                             image = self.plot_1d_regression(valid_tuples[0], itr)
                             self.writer.add_image('val_regression_plot', image, itr)
                     file = (f'model_serialization_{itr}.pkl')
