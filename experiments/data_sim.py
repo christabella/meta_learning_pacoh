@@ -77,13 +77,11 @@ class PhysionetDataset(MetaDataset):
             times = df.index.values.astype(self.dtype)
             values = df.values.astype(self.dtype)
             times_context = [time for time in times if time <= n_samples]
-            if len(times_context) > 0:
-                times_context = np.array(times_context, dtype=self.dtype)
-                values_context = values[: len(times_context)]
-                if values_context.shape[0] >= 4:
-                    meta_train_tuples.append((times_context, values_context))
-                else:
-                    continue
+            if len(times_context) > 4:
+                times = np.array(times, dtype=self.dtype)
+                meta_train_tuples.append((times, values))
+            else:
+                continue
             if len(meta_train_tuples) >= n_tasks:
                 break
 
@@ -114,18 +112,18 @@ class PhysionetDataset(MetaDataset):
             times = df.index.values.astype(self.dtype)
             values = df.values.astype(self.dtype)
             times_context = [time for time in times if time <= n_samples_context]
-            times_test = [time for time in times if time > n_samples_context]
-            if len(times_context) > 0 and len(times_test) > 0:
+            if len(times_context) > 4:
                 times_context = np.array(times_context, dtype=self.dtype)
-                times_test = np.array(times_test, dtype=self.dtype)
+                # Since times aremonotonically increasing
                 values_context = values[: len(times_context)]
-                values_test = values[len(times_context) :]
-                if values_context.shape[0] >= 4:
-                    meta_test_tuples.append(
-                        (times_context, values_context, times_test, values_test)
-                    )
-                else:
-                    continue
+                # Take full set (so context is a subset of target/test)
+                times_test = np.array(times, dtype=self.dtype)
+                values_test = values
+                meta_test_tuples.append(
+                    (times_context, values_context, times_test, values_test)
+                )
+            else:
+                continue
             if len(meta_test_tuples) >= n_tasks:
                 break
 
