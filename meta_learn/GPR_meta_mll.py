@@ -155,7 +155,7 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
 
                 cum_loss += loss
                 self.writer.add_scalar("Loss/train", loss, itr)
-
+                best_val_ll = -np.inf
                 # print training stats stats
                 if itr == 1 or itr % log_period == 0:
                     duration = time.time() - t
@@ -177,6 +177,9 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
                         self.writer.add_scalar("Eval/log_likelihood", valid_ll, itr)
                         self.writer.add_scalar("Eval/rmse", valid_rmse, itr)
                         self.writer.add_scalar("Eval/calibr_error", calibr_err, itr)
+                        if valid_ll > best_val_ll:
+                            torch.save(self.state_dict(), 'best_model_was_{itr}.pkl')
+                            best_val_ll = valid_ll
                         print(f"input: {self.input_dim}, img: {self.image_size}")
                         if self.image_size:
                             for idx in range(5):
@@ -188,8 +191,6 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
                                 image = self.plot_1d_regression(valid_tuples[idx], itr)
                                 plt.imsave(f"images/1d_regression_plot_itr={itr}.png", image.copy())
                                 self.writer.add_image('val_regression_plot_{idx}', image, itr)
-                    file = (f'model_serialization_{itr}.pkl')
-                    torch.save(self.state_dict(), file)
 
                     if verbose:
                         self.logger.info(message)
