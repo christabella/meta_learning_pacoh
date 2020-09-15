@@ -184,8 +184,10 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
                                 plt.imsave(f"images/2d_regression_plot_{idx}_itr={itr}.png", image.copy())
                                 self.writer.add_image(f'val_regression_plot_{idx}', image, itr, dataformats='HWC')
                         elif self.input_dim == 1:
-                            image = self.plot_1d_regression(valid_tuples[0], itr)
-                            self.writer.add_image('val_regression_plot', image, itr)
+                            for idx in range(5):
+                                image = self.plot_1d_regression(valid_tuples[idx], itr)
+                                plt.imsave(f"images/1d_regression_plot_itr={itr}.png", image.copy())
+                                self.writer.add_image('val_regression_plot_{idx}', image, itr)
                     file = (f'model_serialization_{itr}.pkl')
                     torch.save(self.state_dict(), file)
 
