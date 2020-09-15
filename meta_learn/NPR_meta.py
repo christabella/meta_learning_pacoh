@@ -185,7 +185,7 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
                         y_context = torch.from_numpy(np.expand_dims(y_context, axis=0)).float()
                         x_target = torch.from_numpy(np.expand_dims(x_target, axis=0)).float()
                         y_target = torch.from_numpy(np.expand_dims(y_target, axis=0)).float()
-                        if self.image_size:  # Add "channel" dimension
+                        if self.image_size or self.input_dim > 1:  # Add "channel" dimension
                             y_context = torch.unsqueeze(y_context, -1)
                             y_target = torch.unsqueeze(y_target, -1)
                         if self.is_conditional:

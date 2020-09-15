@@ -619,7 +619,7 @@ class SwissfelDataset(MetaDataset):
 
         idx = np.arange(n_samples_context + n_samples_test)
         self.random_state.shuffle(idx)
-        idx_context, idx_test = idx[:n_samples_context], idx[n_samples_context:]
+        idx_context, idx_test = idx[:n_samples_context], idx[:]
 
         meta_test_tuples = [
             (X[idx_context], Y[idx_context], X[idx_test], Y[idx_test])

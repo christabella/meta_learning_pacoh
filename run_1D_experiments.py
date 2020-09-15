@@ -51,6 +51,10 @@ def fit_eval_meta_algo(args):
         dataset = GPFunctionsDataset(random_state=np.random.RandomState(DATA_SEED + 1))
     elif args.dataset == 'swissfel':
         dataset = SwissfelDataset(random_state=np.random.RandomState(DATA_SEED + 1))
+        args.n_train_tasks = 5
+        args.n_test_tasks = 4
+        # args.n_test_context_samples = 100  # Use 100 as context
+        # args.n_samples_per_task = 200  # Or 400?
     # If NP, split meta-test into context-target, else put everything into "context"self.
     # Actually even if NP, put *everything* into the meta_train, since within
     # NPR_meta we further do the splitting based on context_split_ratio.
