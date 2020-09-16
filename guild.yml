@@ -11,7 +11,6 @@
       main: run_1D_experiments
       output-scalars: no
       compare:
-        - .step
         - Eval/log_likelihood
         - Eval/rmse
         - Eval/calibr_error
