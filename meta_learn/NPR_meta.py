@@ -168,14 +168,14 @@ class NPRegressionMetaLearned(RegressionModelMetaLearned):
                     self.writer.add_scalar("Eval/calibr_error", calibr_err, itr)
                     # Add image
                     if self.image_size:
-                        for idx in range(5):
+                        for idx in range(3):
                             image = self.plot_2d_regression(valid_tuples[idx], itr, image_size=self.image_size)
                             plt.imsave(f"images/2d_regression_plot_itr={itr}.png", image.copy())
                             self.writer.add_image(f'val_regression_plot_{idx}', image, itr, dataformats='HWC')
                     elif self.input_dim == 1:
-                        for idx in range(5):
+                        for idx in range(3):
                             image = self.plot_1d_regression(valid_tuples[idx], itr)
-                            self.writer.add_image('val_regression_plot_{idx}', image, itr)
+                            self.writer.add_image(f'val_regression_plot_{idx}', image, itr)
                     # Validation loss---see if overfitting?
                     val_loss = 0.0
                     for valid_tuple in valid_tuples:

@@ -261,7 +261,7 @@ class RegressionModelMetaLearned:
         lcb = pred_dist.icdf(torch.ones(test_x.shape) * alpha)
         return ucb, lcb
 
-    def plot_1d_regression(self, valid_tuple, itr):
+    def plot_1d_regression(self, valid_tuple, itr, idx=0):
         """Save figure as a PGF and send to tensorboard."""
         x_context, y_context, x_test, y_test = valid_tuple
         x_min = min(min(x_context), min(x_test))[0]
@@ -282,7 +282,7 @@ class RegressionModelMetaLearned:
         title = "1D regression on a meta-test task/dataset"
         plt.title(title)
         # Save plot as a PGF file.
-        plt.savefig(f'images/1d_regression_plot_itr={itr}.pgf')
+        plt.savefig(f'images/1d_regression_plot_{idx}_itr={itr}.pgf')
         # Write plot to a bytes buffer.
         buf = io.BytesIO()
         plt.savefig(buf, format='png')

@@ -182,14 +182,14 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
                             best_val_ll = valid_ll
                         print(f"input: {self.input_dim}, img: {self.image_size}")
                         if self.image_size:
-                            for idx in range(5):
+                            for idx in range(3):
                                 image = self.plot_2d_regression(valid_tuples[idx], itr, image_size=self.image_size)
                                 plt.imsave(f"images/2d_regression_plot_{idx}_itr={itr}.png", image.copy())
                                 self.writer.add_image(f'val_regression_plot_{idx}', image, itr, dataformats='HWC')
                         elif self.input_dim == 1:
-                            for idx in range(5):
+                            for idx in range(3):
                                 image = self.plot_1d_regression(valid_tuples[idx], itr)
-                                self.writer.add_image('val_regression_plot_{idx}', image, itr)
+                                self.writer.add_image(f'val_regression_plot_{idx}', image, itr)
 
                     if verbose:
                         self.logger.info(message)
