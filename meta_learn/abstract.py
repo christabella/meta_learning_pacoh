@@ -299,12 +299,15 @@ class RegressionModelMetaLearned:
         img = np.zeros((image_size, image_size))
         for (x, y), val in zip(x_test, pred_mean.reshape(-1)):
             img[int(x), int(y)] = val
-        # for (x, y), val in zip(x_context, y_context):
-        #     img[int(y), int(x)] = val
-
         cmap = sns.cubehelix_palette(as_cmap=True, reverse=True, light=1, dark=0.35)
         img = cmap(img)
-        return img
+
+        # Put mask to the left of this image... TODO only if random...
+        mask_img = np.zeros((image_size, image_size, 4))
+        mask_img[:, :, 3] = 1  # Colour black
+        for x, y in x_context:
+            mask_img[int(x), int(y)] = img[int(x), int(y)]  # Fill in context pixels.
+        return np.concatenate((mask_img, img), axis=1)
 
     def _calib_error(self, pred_dist_vectorized, test_t_tensor):
         return _calib_error(pred_dist_vectorized, test_t_tensor)
