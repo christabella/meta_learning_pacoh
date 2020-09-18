@@ -137,7 +137,7 @@ class MNISTRegressionDataset(MetaDataset):
         super().__init__(random_state)
         self.dtype = dtype
         self.context_mask = context_mask
-        assert context_mask in ["top_half", "left_half", None]
+        assert context_mask in ["top_half", "left_half", "random"]
 
         mnist_dir = MNIST_DIR if os.path.isdir(MNIST_DIR) else None
 
@@ -202,7 +202,7 @@ class MNISTRegressionDataset(MetaDataset):
         elif context_mask == "left_half":
             # == np.meshgrid(np.arange(image_size), np.arange(image_size//2))
             context_indices = indices[:(image_size ** 2) // 2]
-        else:
+        elif context_mask == "random":
             # Pick num_context_points pixels randomly.
             context_indices = indices[
                 self.random_state.choice(

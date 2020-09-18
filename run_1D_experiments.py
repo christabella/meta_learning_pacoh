@@ -40,7 +40,7 @@ def fit_eval_meta_algo(args):
         dataset = CauchyDataset(random_state=np.random.RandomState(DATA_SEED + 1), ndim_x=1)
     elif args.dataset == 'mnist':
         dataset = MNISTRegressionDataset(random_state=np.random.RandomState(DATA_SEED + 1), context_mask=args.context_mask)
-        param_dict['image_size'] = 28
+        args.image_size = 28
     elif args.dataset == 'physionet':
         dataset = PhysionetDataset(random_state=np.random.RandomState(DATA_SEED + 1))
         args.n_test_context_samples = 24  # Use first 24 hours as context

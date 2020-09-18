@@ -39,7 +39,7 @@
         n_train_tasks: 100
         n_samples_per_task: 50
         n_test_context_samples: 5
-        context_mask: None
+        context_mask: random
     train-meta-gpr:
       main: run_1D_experiments
       requires:
@@ -61,4 +61,4 @@
         n_train_tasks: 100
         n_samples_per_task: 50
         n_test_context_samples: 5
-        context_mask: None
+        context_mask: random
