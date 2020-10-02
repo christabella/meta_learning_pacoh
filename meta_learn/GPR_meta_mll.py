@@ -188,7 +188,7 @@ class GPRegressionMetaLearned(RegressionModelMetaLearned):
                                 self.writer.add_image(f'val_regression_plot_{idx}', image, itr, dataformats='HWC')
                         elif self.input_dim == 1:
                             for idx in range(3):
-                                image = self.plot_1d_regression(valid_tuples[idx], itr)
+                                image = self.plot_1d_regression(valid_tuples[idx], itr, idx=idx)
                                 self.writer.add_image(f'val_regression_plot_{idx}', image, itr)
 
                     if verbose:
